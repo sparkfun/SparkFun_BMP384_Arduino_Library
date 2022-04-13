@@ -14,7 +14,7 @@ void setup()
     //pressureSensor.setI2CAddress(BMP384_I2C_ADDRESS_0);
 
     // Check if sensor is connected
-    while(!pressureSensor.begin())
+    while(!pressureSensor.beginI2C())
     {
         // Not connected, inform user
         Serial.println("Error: BMP384 not connected, check wiring and I2C address!");
@@ -34,7 +34,7 @@ void loop()
     
     Serial.print("\t\t");
 
-    Serial.print("Temperature (Pa): ");
+    Serial.print("Pressure (Pa): ");
     Serial.println(pressureSensor.getPressure());
 
     delay(1000);

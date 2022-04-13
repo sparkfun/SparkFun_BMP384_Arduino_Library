@@ -30,6 +30,13 @@ bool BMP384::begin()
     return true;
 }
 
+bool BMP384::beginI2C(uint8_t address)
+{
+    communicationInterface = BMP348_COM_I2C;
+    setI2CAddress(address);
+    return begin();
+}
+
 void BMP384::setPowerMode(uint8_t modeBits)
 {
     // Ensure only last 2 bits are used
