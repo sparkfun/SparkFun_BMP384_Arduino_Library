@@ -37,6 +37,15 @@ bool BMP384::beginI2C(uint8_t address)
     return begin();
 }
 
+bool BMP384::beginSPI(uint8_t csPin)
+{
+    communicationInterface = BMP348_COM_SPI;
+    spiCSPin = csPin;
+    digitalWrite(spiCSPin, HIGH);
+    pinMode(spiCSPin, OUTPUT);
+    return begin();
+}
+
 void BMP384::setPowerMode(uint8_t modeBits)
 {
     // Ensure only last 2 bits are used
@@ -213,18 +222,41 @@ uint8_t BMP384::readRegister(uint8_t regAddress)
 
 void BMP384::readRegisters(uint8_t regAddress, void* dataBuffer, uint8_t numBytes)
 {
-    // Jump to desired register address
-    Wire.beginTransmission(i2cAddress);
-    Wire.write(regAddress);
-    Wire.endTransmission();
-
-    // Read bytes from these registers
-    Wire.requestFrom(i2cAddress, numBytes);
-
-    // Store all requested bytes
-    for(uint8_t i = 0; i < numBytes; i++)
+    switch(communicationInterface)
     {
-        ((uint8_t*) dataBuffer)[i] = Wire.read();
+        case BMP348_COM_I2C:
+            // Jump to desired register address
+            Wire.beginTransmission(i2cAddress);
+            Wire.write(regAddress);
+            Wire.endTransmission();
+
+            // Read bytes from these registers
+            Wire.requestFrom(i2cAddress, numBytes);
+
+            // Store all requested bytes
+            for(uint8_t i = 0; i < numBytes; i++)
+            {
+                ((uint8_t*) dataBuffer)[i] = Wire.read();
+            }
+            break;
+        
+        case BMP348_COM_SPI:
+            SPI.beginTransaction(spiSettings);
+            digitalWrite(spiCSPin, LOW);
+            SPI.transfer(regAddress | 0x80);
+
+            // Have to send one dummy byte
+            SPI.transfer(0);
+
+            // Store all requested bytes
+            for(uint8_t i = 0; i < numBytes; i++)
+            {
+                ((uint8_t*) dataBuffer)[i] = SPI.transfer(0);;
+            }
+
+            digitalWrite(spiCSPin, HIGH);
+            SPI.endTransaction();
+            break;
     }
 }
 
@@ -236,9 +268,33 @@ void BMP384::writeRegister(uint8_t regAddress, uint8_t data)
 
 void BMP384::writeRegisters(uint8_t regAddress, void* data, uint8_t numBytes)
 {
-    // Write all requested bytes at these registers
-    Wire.beginTransmission(i2cAddress);
-    Wire.write(regAddress);
-    Wire.write((uint8_t*) data, numBytes);
-    Wire.endTransmission();
+    switch(communicationInterface)
+    {
+        case BMP348_COM_I2C:
+            // Write all requested bytes at these registers
+            Wire.beginTransmission(i2cAddress);
+            Wire.write(regAddress);
+            Wire.write((uint8_t*) data, numBytes);
+            Wire.endTransmission();
+            break;
+        
+        case BMP348_COM_SPI:
+            SPI.beginTransaction(spiSettings);
+            digitalWrite(spiCSPin, LOW);
+            
+            // Registers have to be written one by one
+            // for(uint8_t i = 0; i < numBytes; i++)
+            // {
+            //     SPI.transfer(regAddress);
+            //     SPI.transfer((uint8_t*) data, numBytes);
+            //     regAddress++;
+            // }
+
+            SPI.transfer(regAddress);
+            SPI.transfer((uint8_t*) data, numBytes);
+
+            digitalWrite(spiCSPin, HIGH);
+            SPI.endTransaction();
+            break;
+    }
 }

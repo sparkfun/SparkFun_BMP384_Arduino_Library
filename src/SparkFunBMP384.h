@@ -69,6 +69,10 @@
 #define BMP384_POWER_MODE_FORCED    0b01
 #define BMP384_POWER_MODE_NORMAL    0b11
 
+// Possible communication interfaces
+#define BMP348_COM_I2C              0
+#define BMP348_COM_SPI              1
+
 // Raw calibration values, acquired from the sensor
 struct BMP384_CalibrationRaw
 {
@@ -119,8 +123,12 @@ class BMP384
         // Constructor
         BMP384();
 
-        // Chip control
+        // Initialization methods
         bool begin();
+        bool beginI2C(uint8_t address = BMP384_I2C_ADDRESS_1);
+        bool beginSPI(uint8_t csPin);
+        
+        // Chip control
         void setPowerMode(uint8_t modeBits);
         void enableTemperature(bool enable);
         void enablePressure(bool enable);
@@ -159,8 +167,17 @@ class BMP384
         void writeRegister(uint8_t regAddress, uint8_t data);
         void writeRegisters(uint8_t regAddress, void* dataBuffer, uint8_t numBytes);
 
+        // Communication interface (I2C or SPI)
+        uint8_t communicationInterface = BMP348_COM_I2C;
+
         // Default I2C address
         uint8_t i2cAddress = BMP384_I2C_ADDRESS_1;
+
+        // SPI chip select pin
+        uint8_t spiCSPin;
+
+        // SPI bus settings
+        SPISettings spiSettings{1000000, MSBFIRST, SPI_MODE0};
 
         // Remember values to remember
         uint8_t regPwrCtrl = 0x00;
