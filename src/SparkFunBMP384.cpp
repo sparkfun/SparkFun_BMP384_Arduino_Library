@@ -17,6 +17,9 @@ bool BMP384::begin()
         return false;
     }
 
+    // Trigger a reset, just in case some previous configuration is active
+    reset();
+
     // We're connected to the chip, we need to grab the calibration data
     getCalibrationData();
 
@@ -44,6 +47,11 @@ bool BMP384::beginSPI(uint8_t csPin)
     digitalWrite(spiCSPin, HIGH);
     pinMode(spiCSPin, OUTPUT);
     return begin();
+}
+
+void BMP384::reset()
+{
+    writeRegister(BMP384_REG_CMD, BMP384_CMD_RESET);
 }
 
 void BMP384::setPowerMode(uint8_t modeBits)

@@ -64,6 +64,10 @@
 #define BMP384_I2C_ADDRESS_0        0x76
 #define BMP384_I2C_ADDRESS_1        0x77
 
+// CMD register commands
+#define BMP384_CMD_FIFO_FLUSH       0xB0
+#define BMP384_CMD_RESET            0xB6
+
 // Power modes
 #define BMP384_POWER_MODE_SLEEP     0b00
 #define BMP384_POWER_MODE_FORCED    0b01
@@ -158,6 +162,7 @@ class BMP384
         bool beginSPI(uint8_t csPin);
         
         // Chip control
+        void reset();
         void setPowerMode(uint8_t modeBits);
         void enableTemperature(bool enable);
         void enablePressure(bool enable);
