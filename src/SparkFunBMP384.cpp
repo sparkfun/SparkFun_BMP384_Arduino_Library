@@ -182,6 +182,33 @@ void BMP384::setODRPrescaler(uint32_t prescaler)
     writeRegister(BMP384_REG_ODR, odr);
 }
 
+uint8_t BMP384::getFilterCoefficient()
+{
+    // Get IIR bits
+    uint8_t iir = (readRegister(BMP384_REG_CONFIG) >> 1) & 0b111;
+
+    // Coefficient is 2^IIR - 1
+    uint8_t coefficient = (1 << iir) - 1;
+    return coefficient;
+}
+
+void BMP384::setFilterCoefficient(uint8_t coefficient)
+{
+    // Coefficient must be a power of 2 minus 1, but user may give some other value.
+    // If so, we'll truncate it by finding the previous greatest power of 2 minus 1
+    uint8_t iir = 0;
+    while(((coefficient + 1) >> iir) > 1)
+    {
+        // Next power of 2 minus 1 is still less than coefficient
+        iir++;
+
+        // Don't go above max IIR value
+        if(iir == 0b111)
+        {
+            break;
+        }
+    }
+    
 void BMP384::getCalibrationData()
 {
     // Read raw calibration data stored on device

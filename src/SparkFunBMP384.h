@@ -191,6 +191,11 @@ class BMP384
         uint32_t getODRPrescaler();
         void setODRPrescaler(uint32_t prescaler);
 
+        // IIR filter config
+        // Coefficient should be a power of 2 minus 1, max of 127 (2^7 - 1)
+        uint8_t getFilterCoefficient();
+        void setFilterCoefficient(uint8_t coefficient);
+
     private:
         // Calibration
         BMP384_Calibration calibrationData;
