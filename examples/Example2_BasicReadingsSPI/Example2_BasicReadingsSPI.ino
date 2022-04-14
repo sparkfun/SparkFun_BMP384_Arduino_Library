@@ -19,7 +19,7 @@ void setup()
         Serial.println("Error: BMP384 not connected, check wiring!");
 
         // Wait a bit to see if connection is established
-        //delay(1000);
+        delay(1000);
     }
 
     Serial.println("BMP384 connected!");
@@ -36,5 +36,5 @@ void loop()
     Serial.print("Pressure (Pa): ");
     Serial.println(pressureSensor.getPressure());
 
-    //delay(1000);
+    delay(1000);
 }
