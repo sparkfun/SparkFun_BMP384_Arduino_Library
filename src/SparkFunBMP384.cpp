@@ -122,6 +122,31 @@ bool BMP384::setI2CAddress(uint8_t address)
     return true;
 }
 
+BMP384_InterruptConfig BMP384::getInterruptConfig()
+{
+    BMP384_InterruptConfig config =
+    {
+        .registerVal = readRegister(BMP384_REG_INT_CTRL)
+    };
+
+    return config;
+}
+
+void BMP384::setInterruptConfig(BMP384_InterruptConfig config)
+{
+    writeRegister(BMP384_REG_INT_CTRL, config.registerVal);
+}
+
+BMP384_InterruptStatus BMP384::getInterruptStatus()
+{
+    BMP384_InterruptStatus status =
+    {
+        .registerVal = readRegister(BMP384_REG_INT_STATUS)
+    };
+
+    return status;
+}
+
 uint32_t BMP384::getODRPrescaler()
 {
     uint8_t odr = readRegister(BMP384_REG_ODR);

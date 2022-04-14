@@ -117,6 +117,35 @@ struct BMP384_Calibration
     float PAR_P11;
 };
 
+// Flags used to configured the INT_CTRL register
+union BMP384_InterruptConfig
+{
+    struct
+    {
+        uint8_t openDrain     : 1;
+        uint8_t activeHigh    : 1;
+        uint8_t latch         : 1;
+        uint8_t fifoWatermark : 1;
+        uint8_t fifoFull      : 1;
+        uint8_t               : 1; // 1 bit padding
+        uint8_t dataReady     : 1;
+    } flags;
+    uint8_t registerVal;
+};
+
+// Flags returned by INT_STATUS register
+union BMP384_InterruptStatus
+{
+    struct
+    {
+        uint8_t fifoWatermark : 1;
+        uint8_t fifoFull      : 1;
+        uint8_t               : 1; // 1 bit padding
+        uint8_t dataReady     : 1;
+    } flags;
+    uint8_t registerVal;
+};
+
 class BMP384
 {
     public:
@@ -144,6 +173,13 @@ class BMP384
 
         // Change the address of this board
         bool setI2CAddress(uint8_t address);
+
+        // Interrupt configuration
+        BMP384_InterruptConfig getInterruptConfig();
+        void setInterruptConfig(BMP384_InterruptConfig config);
+
+        // Interrupt status
+        BMP384_InterruptStatus getInterruptStatus();
 
         // Output data rate (ODR) config
         // Prescaler should be a power of 2, max of 131075 (2^17)
