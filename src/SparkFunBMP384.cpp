@@ -122,6 +122,33 @@ bool BMP384::setI2CAddress(uint8_t address)
     return true;
 }
 
+uint32_t BMP384::getODRPrescaler()
+{
+    uint8_t odr = readRegister(BMP384_REG_ODR);
+    uint32_t prescaler = (uint32_t) 1 << odr;
+    return prescaler;
+}
+
+void BMP384::setODRPrescaler(uint32_t prescaler)
+{
+    // Prescaler must be a power of 2, but user may give some other value.
+    // If so, we'll truncate it by finding the previous greatest power of 2
+    uint8_t odr = 0;
+    while((prescaler >> odr) > 1)
+    {
+        // Next power of 2 is still less than prescaler
+        odr++;
+
+        // Don't go above max ODR value
+        if(odr == 0x11)
+        {
+            break;
+        }
+    }
+
+    writeRegister(BMP384_REG_ODR, odr);
+}
+
 void BMP384::getCalibrationData()
 {
     // Read raw calibration data stored on device

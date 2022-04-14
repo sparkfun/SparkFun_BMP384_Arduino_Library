@@ -145,6 +145,11 @@ class BMP384
         // Change the address of this board
         bool setI2CAddress(uint8_t address);
 
+        // Output data rate (ODR) config
+        // Prescaler should be a power of 2, max of 131075 (2^17)
+        uint32_t getODRPrescaler();
+        void setODRPrescaler(uint32_t prescaler);
+
     private:
         // Calibration
         BMP384_Calibration calibrationData;
