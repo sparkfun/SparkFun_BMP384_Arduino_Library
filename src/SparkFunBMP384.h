@@ -214,10 +214,10 @@ class BMP384
         uint64_t getRawData();
 
         // Converts value from getRawData() to temperature in C
-        float convertTemperature(uint64_t rawData);
+        float convertTemperature(uint32_t rawTemp);
 
         // Converts value from getRawData() to pressure in Pa
-        float convertPressure(uint64_t rawData);
+        float convertPressure(uint32_t rawPress, float trueTemp);
 
         // Methods to read/write registers
         uint8_t readRegister(uint8_t regAddress);

@@ -97,18 +97,22 @@ float BMP384::getTemperature()
 {
     // Get raw data from sensor
     uint64_t rawData = getRawData();
+    uint32_t rawTemp = (rawData >> 24) & 0xFFFFFF;
 
     // Convert to temperature in C
-    return convertTemperature(rawData);
+    return convertTemperature(rawTemp);
 }
 
 float BMP384::getPressure()
 {
     // Get raw data from sensor
     uint64_t rawData = getRawData();
+    uint32_t rawTemp = (rawData >> 24) & 0xFFFFFF;
+    uint32_t rawPress = rawData & 0xFFFFFF;
 
     // Convert to temperature in C
-    return convertPressure(rawData);
+    float trueTemp = convertTemperature(rawTemp);
+    return convertPressure(rawPress, trueTemp);
 }
 
 uint8_t BMP384::getChipID()
@@ -315,11 +319,8 @@ uint64_t BMP384::getRawData()
     return rawData;
 }
 
-float BMP384::convertTemperature(uint64_t rawData)
+float BMP384::convertTemperature(uint32_t rawTemp)
 {
-    // Middle 3 bytes are raw temperature
-    uint32_t rawTemp = (rawData >> 24) & 0xFFFFFF;
-
     // Temporary variables
     float partial1;
     float partial2;
@@ -334,14 +335,8 @@ float BMP384::convertTemperature(uint64_t rawData)
     return trueTemp;
 }
 
-float BMP384::convertPressure(uint64_t rawData)
+float BMP384::convertPressure(uint32_t rawPress, float trueTemp)
 {
-    // Need to get true temperature first
-    float trueTemp = convertTemperature(rawData);
-
-    // Lowest 3 bytes are raw pressure
-    uint32_t rawPress = rawData & 0xFFFFFF;
-
     // Temporary variables
     float partial1;
     float partial2;
