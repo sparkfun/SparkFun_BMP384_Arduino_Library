@@ -212,6 +212,76 @@ void BMP384::setFilterCoefficient(uint8_t coefficient)
     writeRegister(BMP384_REG_CONFIG, (iir << 1));
 }
 
+uint8_t BMP384::getTemperatureOSRMultiplier()
+{
+    // Get temperature OSR bits
+    uint8_t osr = (regOsr >> 3) & 0b111;
+
+    // Multiplier is 2^OSR
+    uint8_t multiplier = 1 << osr;
+    return multiplier;
+}
+
+uint8_t BMP384::getPressureOSRMultiplier()
+{
+    // Get pressure OSR bits
+    uint8_t osr = regOsr & 0b111;
+
+    // Multiplier is 2^OSR
+    uint8_t multiplier = 1 << osr;
+    return multiplier;
+}
+
+void BMP384::setTemperatureOSRMultiplier(uint8_t multiplier)
+{
+    // Multipler must be a power of 2, but user may give some other value.
+    // If so, we'll truncate it by finding the previous greatest power of 2
+    uint8_t osr = 0;
+    while((multiplier >> osr) > 1)
+    {
+        // Next power of 2 is still less than multiplier
+        osr++;
+
+        // Don't go above max OSR value
+        if(osr == 0b101)
+        {
+            break;
+        }
+    }
+
+    // Clear previous temperature OSR bits
+    regOsr &= ~(0b111 << 3);
+    
+    // Set new OSR bits
+    regOsr |= osr << 3;
+    writeRegister(BMP384_REG_OSR, regOsr);
+}
+
+void BMP384::setPressureOSRMultiplier(uint8_t multiplier)
+{
+    // Multipler must be a power of 2, but user may give some other value.
+    // If so, we'll truncate it by finding the previous greatest power of 2
+    uint8_t osr = 0;
+    while((multiplier >> osr) > 1)
+    {
+        // Next power of 2 is still less than multiplier
+        osr++;
+
+        // Don't go above max OSR value
+        if(osr == 0b101)
+        {
+            break;
+        }
+    }
+
+    // Clear previous temperature OSR bits
+    regOsr &= ~0b111;
+    
+    // Set new OSR bits
+    regOsr |= osr;
+    writeRegister(BMP384_REG_OSR, regOsr);
+}
+
 void BMP384::getCalibrationData()
 {
     // Read raw calibration data stored on device

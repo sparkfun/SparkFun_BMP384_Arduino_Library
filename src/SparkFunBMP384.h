@@ -196,6 +196,13 @@ class BMP384
         uint8_t getFilterCoefficient();
         void setFilterCoefficient(uint8_t coefficient);
 
+        // Oversampling (OSR) config
+        // Multiplier should be a power of 2, max of 32 (2^5)
+        uint8_t getTemperatureOSRMultiplier();
+        uint8_t getPressureOSRMultiplier();
+        void setTemperatureOSRMultiplier(uint8_t multiplier);
+        void setPressureOSRMultiplier(uint8_t multiplier);
+
     private:
         // Calibration
         BMP384_Calibration calibrationData;
@@ -230,8 +237,9 @@ class BMP384
         // SPI bus settings
         SPISettings spiSettings{1000000, MSBFIRST, SPI_MODE0};
 
-        // Remember values to remember
+        // Register values to remember, with default values
         uint8_t regPwrCtrl = 0x00;
+        uint8_t regOsr     = 0x00; // Datasheet says this should be 0x02, but it's not
 };
 
 #endif
