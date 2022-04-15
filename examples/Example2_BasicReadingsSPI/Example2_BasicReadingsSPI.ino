@@ -1,9 +1,9 @@
-#include <Wire.h>
+#include <SPI.h>
 #include "SparkFunBMP384.h"
 
 BMP384 pressureSensor;
 
-uint8_t csPin = 5;
+uint8_t csPin = 10;
 
 void setup()
 {
