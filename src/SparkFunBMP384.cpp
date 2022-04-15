@@ -364,9 +364,8 @@ int16_t BMP384::readFIFO(float* tempData, float* pressData, uint16_t numData)
                 // during the next FIFO read
                 numBytesToRead++;
 
-                // Create a place to store the FIFO frame. Max is 7 bytes, so this
-                // is sufficient to hold it all
-                uint64_t fifoFrame = 0;
+                // Create a place to store the FIFO frame. Max length is 7 bytes
+                uint8_t fifoFrame[7] = {0};
 
                 // Read the frame. The address counter does not increment at the
                 // FIFO data register
@@ -375,7 +374,7 @@ int16_t BMP384::readFIFO(float* tempData, float* pressData, uint16_t numData)
                 // Create a pointer to the start of the data within the frame. This
                 // helps with copying into the output arrays, since if temperature
                 // is disabled, those 3 bytes are not present
-                uint8_t dataPtr = &fifoFrame + 1;
+                uint8_t* dataPtr = fifoFrame + 1;
 
                 // If the frame has temperature data, copy 3 bytes into the
                 // temperature output array
