@@ -42,10 +42,10 @@ void setup()
         {
             .openDrain     = false, // Open-drain or push/pull
             .activeHigh    = true,  // Active high or low signal level
-            .latch         = false, // 
-            .fifoWatermark = false,
-            .fifoFull      = false,
-            .dataReady     = true
+            .latch         = false, // Prevent interrupt from automatically clearing
+            .fifoWatermark = false, // Trigger interrupt when FIFO watermark is reached
+            .fifoFull      = false, // Trigger interrupt when FIFO is full
+            .dataReady     = true   // Trigger interrupt when measurement is complete
         }
     };
     pressureSensor.setInterruptConfig(config);
