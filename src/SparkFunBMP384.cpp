@@ -209,6 +209,9 @@ void BMP384::setFilterCoefficient(uint8_t coefficient)
         }
     }
     
+    writeRegister(BMP384_REG_CONFIG, (iir << 1));
+}
+
 void BMP384::getCalibrationData()
 {
     // Read raw calibration data stored on device
