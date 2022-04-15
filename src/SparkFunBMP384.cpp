@@ -375,7 +375,7 @@ uint8_t BMP384::readRegister(uint8_t regAddress)
     return data;
 }
 
-void BMP384::readRegisters(uint8_t regAddress, void* dataBuffer, uint8_t numBytes)
+void BMP384::readRegisters(uint8_t regAddress, void* dataBuffer, uint16_t numBytes)
 {
     switch(communicationInterface)
     {

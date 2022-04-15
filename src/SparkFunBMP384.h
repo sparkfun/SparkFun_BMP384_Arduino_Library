@@ -221,7 +221,7 @@ class BMP384
 
         // Methods to read/write registers
         uint8_t readRegister(uint8_t regAddress);
-        void readRegisters(uint8_t regAddress, void* dataBuffer, uint8_t numBytes);
+        void readRegisters(uint8_t regAddress, void* dataBuffer, uint16_t numBytes);
         void writeRegister(uint8_t regAddress, uint8_t data);
         void writeRegisters(uint8_t regAddress, void* dataBuffer, uint8_t numBytes);
 
