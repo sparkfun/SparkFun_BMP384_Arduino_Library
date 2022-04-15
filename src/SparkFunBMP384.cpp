@@ -286,6 +286,168 @@ void BMP384::setPressureOSRMultiplier(uint8_t multiplier)
     writeRegister(BMP384_REG_OSR, regOsr);
 }
 
+void BMP384::setFIFOConfig(BMP384_FIFOConfig config)
+{
+    writeRegisters(BMP384_REG_FIFO_CONFIG_1, &config.registerVals, sizeof(config.registerVals));
+    
+    // Set the expected number of bytes per FIFO frame. Each frame has a 1 byte
+    // header, plus 3 bytes per sensor
+    numBytesPerFIFOFrame = 1 + 3 * (config.flags.tempEnable + config.flags.pressEnable);
+}
+
+void BMP384::setFIFOWatermarkBytes(uint16_t numBytes)
+{
+    // Watermark can't be greater than 9 bits long (511 max)
+    if(numBytes > 0x1FF)
+    {
+        numBytes = 0x1FF;
+    }
+    writeRegisters(BMP384_REG_FIFO_WTM_0, &numBytes, sizeof(numBytes));
+}
+
+void BMP384::setFIFOWatermarkSamples(uint8_t numSamples)
+{
+    setFIFOWatermarkBytes(numSamples * numBytesPerFIFOFrame);
+}
+
+uint16_t BMP384::getFIFOLengthBytes()
+{
+    uint16_t numBytes = 0;
+    readRegisters(BMP384_REG_FIFO_LENGTH_0, &numBytes, 2);
+    return numBytes;
+}
+
+uint8_t BMP384::getFIFOLengthSamples()
+{
+    return getFIFOLengthBytes() / numBytesPerFIFOFrame;
+}
+
+int16_t BMP384::readFIFO(float* tempData, float* pressData, uint16_t numData)
+{
+    // Iterate through all requested data samples
+    for(uint16_t i = 0; i < numData; i++)
+    {
+        // Read frame header. This is a partial read corner case described in the
+        // datasheet, but we need to read the header separately to know how many
+        // more bytes there are in this frame
+        uint8_t header = readRegister(BMP384_REG_FIFO_DATA);
+
+        // Determine type of frame by the first bit of the header
+        if((header >> 7) & 1)
+        {
+            // This is a sensor frame, meaning we'll have some data bytes to read
+            // Determine what data is in this frame
+            bool s = (header >> 5) & 1;
+            bool t = (header >> 4) & 1;
+            bool p = (header >> 2) & 1;
+            if(s)
+            {
+                // This is a sensor-time frame, which we don't support. These frames
+                // only appear when the FIFO buffer is empty, so there's no more
+                // data to be read
+                return i;
+            }
+            else if(!(t | p))
+            {
+                // s=t=p=0, so this is an empty frame. These frames only appear
+                // when the FIFO buffer is empty, so there's no more data to be read
+                return i;
+            }
+            else
+            {
+                // This frame contains temperature and/or pressure data, each of
+                // which consist of 3 bytes. Determine how many total bytes we
+                // need to read out
+                uint8_t numBytesToRead = 3 * (t + p);
+                
+                // Because we didn't read the entire frame, the header is repeated
+                // during the next FIFO read
+                numBytesToRead++;
+
+                // Create a place to store the FIFO frame. Max is 7 bytes, so this
+                // is sufficient to hold it all
+                uint64_t fifoFrame = 0;
+
+                // Read the frame. The address counter does not increment at the
+                // FIFO data register
+                readRegisters(BMP384_REG_FIFO_DATA, &fifoFrame, numBytesToRead);
+
+                // Create a pointer to the start of the data within the frame. This
+                // helps with copying into the output arrays, since if temperature
+                // is disabled, those 3 bytes are not present
+                uint8_t dataPtr = &fifoFrame + 1;
+
+                // If the frame has temperature data, copy 3 bytes into the
+                // temperature output array
+                if(t)
+                {
+                    uint32_t rawTemp = 0;
+                    memcpy(&rawTemp, dataPtr, 3);
+                    tempData[i] = convertTemperature(rawTemp);
+                    dataPtr += 3;
+                }
+                // If the frame has pressure data, copy 3 bytes into the
+                // pressure output array
+                if(p)
+                {
+                    uint32_t rawPress = 0;
+                    memcpy(&rawPress, dataPtr, 3);
+                    pressData[i] = convertPressure(rawPress, tempData[i]);
+                }
+
+                continue;
+            }
+        }
+        else
+        {
+            // This is a control frame, determine what type
+            uint8_t controlType = (header >> 2) & 0b11;
+            if(controlType == 0b01)
+            {
+                // This is a configuration error frame, meaning the user has
+                // not configured the FIFO buffer correctly. We need to remove
+                // it from the buffer by reading it completely. These frames
+                // are 2 bytes long
+                int num = 2;
+                uint8_t foo[2];
+                readRegisters(BMP384_REG_FIFO_DATA, foo, 2);
+
+                // Return an error code
+                return -1;
+            }
+            else if(controlType == 0b10)
+            {
+                // This is a configuration change frame, indicating something
+                // about the FIFO config has been modified between FIFO writes.
+                // We won't do anything with this frame, but we need to remove it
+                // from the buffer by reading it completely. The datasheet
+                // doesn't specify how many bytes are in each config change
+                // frame, but it appears to be 2 (1 header plus 1 data)
+                int num = 2;
+                uint8_t foo[2];
+                readRegisters(BMP384_REG_FIFO_DATA, foo, 2);
+
+                // Prevent index from incrementing, since this isn't a data frame
+                i--;
+                continue;
+            }
+            else
+            {
+                // Unknown frame, return an error code
+                return -1;
+            }
+        }
+    }
+
+    // Data was successfully read out of the FIFO buffer
+    return numData;
+}
+
+void BMP384::flushFIFO()
+{
+    writeRegister(BMP384_REG_CMD, BMP384_CMD_FIFO_FLUSH);
+}
+
 void BMP384::getCalibrationData()
 {
     // Read raw calibration data stored on device

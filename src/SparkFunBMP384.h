@@ -131,7 +131,7 @@ union BMP384_InterruptConfig
         uint8_t latch         : 1;
         uint8_t fifoWatermark : 1;
         uint8_t fifoFull      : 1;
-        uint8_t               : 1; // 1 bit padding
+        uint8_t               : 1; // Padding
         uint8_t dataReady     : 1;
     } flags;
     uint8_t registerVal;
@@ -144,10 +144,27 @@ union BMP384_InterruptStatus
     {
         uint8_t fifoWatermark : 1;
         uint8_t fifoFull      : 1;
-        uint8_t               : 1; // 1 bit padding
+        uint8_t               : 1; // Padding
         uint8_t dataReady     : 1;
     } flags;
     uint8_t registerVal;
+};
+
+// Flags used to configured the FIFO buffer
+union BMP384_FIFOConfig
+{
+    struct
+    {
+        uint8_t fifoEnable        : 1;
+        uint8_t stopOnFull        : 1;
+        uint8_t timeEnable        : 1;
+        uint8_t pressEnable       : 1;
+        uint8_t tempEnable        : 1;
+        uint8_t                   : 3; // Padding
+        uint8_t subsampling       : 3;
+        uint8_t dataSelect        : 2;
+    } flags;
+    uint16_t registerVals;
 };
 
 class BMP384
@@ -203,6 +220,15 @@ class BMP384
         void setTemperatureOSRMultiplier(uint8_t multiplier);
         void setPressureOSRMultiplier(uint8_t multiplier);
 
+        // FIFO buffer config
+        void setFIFOConfig(BMP384_FIFOConfig config);
+        void setFIFOWatermarkBytes(uint16_t numBytes);
+        void setFIFOWatermarkSamples(uint8_t numSamples);
+        uint16_t getFIFOLengthBytes();
+        uint8_t getFIFOLengthSamples();
+        int16_t readFIFO(float* tempData, float* pressData, uint16_t numData);
+        void flushFIFO();
+
     private:
         // Calibration
         BMP384_Calibration calibrationData;
@@ -237,9 +263,13 @@ class BMP384
         // SPI bus settings
         SPISettings spiSettings{1000000, MSBFIRST, SPI_MODE0};
 
+        // Expected number of bytes per FIFO frame, used for watermark
+        uint16_t numBytesPerFIFOFrame = 1;
+
         // Register values to remember, with default values
-        uint8_t regPwrCtrl = 0x00;
-        uint8_t regOsr     = 0x00; // Datasheet says this should be 0x02, but it's not
+        uint8_t  regPwrCtrl    = 0x00;
+        uint8_t  regOsr        = 0x00; // Datasheet says this should be 0x02, but it's not
+        uint16_t regFIFOConfig = 0x0202;
 };
 
 #endif
