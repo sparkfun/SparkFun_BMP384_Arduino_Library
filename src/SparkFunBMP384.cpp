@@ -431,10 +431,15 @@ void BMP384::writeRegisters(uint8_t regAddress, void* data, uint8_t numBytes)
     switch(communicationInterface)
     {
         case BMP348_COM_I2C:
-            // Write all requested bytes at these registers
             Wire.beginTransmission(i2cAddress);
-            Wire.write(regAddress);
-            Wire.write((uint8_t*) data, numBytes);
+            
+            // Registers have to be written in address/data pairs
+            for(uint8_t i = 0; i < numBytes; i++)
+            {
+                Wire.write(regAddress + i);
+                Wire.write(((uint8_t*) data)[i]);
+            }
+
             Wire.endTransmission();
             break;
         
@@ -442,16 +447,12 @@ void BMP384::writeRegisters(uint8_t regAddress, void* data, uint8_t numBytes)
             SPI.beginTransaction(spiSettings);
             digitalWrite(spiCSPin, LOW);
             
-            // Registers have to be written one by one
-            // for(uint8_t i = 0; i < numBytes; i++)
-            // {
-            //     SPI.transfer(regAddress);
-            //     SPI.transfer((uint8_t*) data, numBytes);
-            //     regAddress++;
-            // }
-
-            SPI.transfer(regAddress);
-            SPI.transfer((uint8_t*) data, numBytes);
+            // Registers have to be written in address/data pairs
+            for(uint8_t i = 0; i < numBytes; i++)
+            {
+                SPI.transfer(regAddress + i);
+                SPI.transfer(((uint8_t*) data)[i]);
+            }
 
             digitalWrite(spiCSPin, HIGH);
             SPI.endTransaction();
