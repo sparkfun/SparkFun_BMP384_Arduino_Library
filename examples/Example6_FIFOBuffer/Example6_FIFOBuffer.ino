@@ -11,6 +11,8 @@ const uint16_t numSamples = 5;
 float tempData[numSamples] = {0};
 float pressData[numSamples] = {0};
 
+uint8_t numFIFOSamples = 0;
+
 void setup()
 {
     Serial.begin(115200);
@@ -84,11 +86,18 @@ void setup()
 
 void loop()
 {
-    // Print FIFO length
-    Serial.print("FIFO Length: ");
-    Serial.print(pressureSensor.getFIFOLengthSamples());
-    Serial.print("/");
-    Serial.println(numSamples);
+    // Wait for number of samples in FIFO buffer to change
+    if(numFIFOSamples != pressureSensor.getFIFOLengthSamples())
+    {
+        // Update number of samples
+        numFIFOSamples = pressureSensor.getFIFOLengthSamples();
+
+        // Print FIFO length
+        Serial.print("FIFO Length: ");
+        Serial.print(numFIFOSamples);
+        Serial.print("/");
+        Serial.println(numSamples);
+    }
 
     // Check whether interrupt occurred 
     if(interruptOccurred)
@@ -123,9 +132,6 @@ void loop()
         // Reset flag for next interrupt
         interruptOccurred = false;
     }
-
-    // Don't spam serial
-    delay(1000);
 }
 
 void bmp384InterruptHandler()
