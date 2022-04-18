@@ -322,10 +322,10 @@ uint8_t BMP384::getFIFOLengthSamples()
     return getFIFOLengthBytes() / numBytesPerFIFOFrame;
 }
 
-int16_t BMP384::readFIFO(float* tempData, float* pressData, uint16_t numData)
+uint8_t BMP384::readFIFO(float* tempData, float* pressData, uint8_t numData)
 {
     // Iterate through all requested data samples
-    for(uint16_t i = 0; i < numData; i++)
+    for(uint8_t i = 0; i < numData; i++)
     {
         // Read frame header. This is a partial read corner case described in the
         // datasheet, but we need to read the header separately to know how many
@@ -407,12 +407,12 @@ int16_t BMP384::readFIFO(float* tempData, float* pressData, uint16_t numData)
                 // not configured the FIFO buffer correctly. We need to remove
                 // it from the buffer by reading it completely. These frames
                 // are 2 bytes long
-                int num = 2;
-                uint8_t foo[2];
-                readRegisters(BMP384_REG_FIFO_DATA, foo, 2);
+                uint8_t num = 2;
+                uint8_t foo[num];
+                readRegisters(BMP384_REG_FIFO_DATA, foo, num);
 
-                // Return an error code
-                return -1;
+                // Return early to indicate an error
+                return i;
             }
             else if(controlType == 0b10)
             {
@@ -422,9 +422,9 @@ int16_t BMP384::readFIFO(float* tempData, float* pressData, uint16_t numData)
                 // from the buffer by reading it completely. The datasheet
                 // doesn't specify how many bytes are in each config change
                 // frame, but it appears to be 2 (1 header plus 1 data)
-                int num = 2;
-                uint8_t foo[2];
-                readRegisters(BMP384_REG_FIFO_DATA, foo, 2);
+                uint8_t num = 2;
+                uint8_t foo[num];
+                readRegisters(BMP384_REG_FIFO_DATA, foo, num);
 
                 // Prevent index from incrementing, since this isn't a data frame
                 i--;
@@ -432,8 +432,8 @@ int16_t BMP384::readFIFO(float* tempData, float* pressData, uint16_t numData)
             }
             else
             {
-                // Unknown frame, return an error code
-                return -1;
+                // Unknown frame, return early to indicate an error
+                return i;
             }
         }
     }

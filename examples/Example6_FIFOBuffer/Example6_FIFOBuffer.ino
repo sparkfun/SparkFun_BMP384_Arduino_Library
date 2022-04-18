@@ -99,7 +99,7 @@ void loop()
         {
             // Read out FIFO data
             Serial.println("FIFO watermark reached! Reading FIFO data...");
-            int16_t numDataRead = pressureSensor.readFIFO(tempData, pressData, numSamples);
+            uint8_t numDataRead = pressureSensor.readFIFO(tempData, pressData, numSamples);
 
             // Check whether all data was acquired from FIFO buffer
             if(numDataRead != numSamples)
@@ -108,7 +108,7 @@ void loop()
             }
 
             // Print out all FIFO data
-            for(uint16_t i = 0; i < numDataRead; i++)
+            for(uint8_t i = 0; i < numDataRead; i++)
             {
                 Serial.print("Temperature (C): ");
                 Serial.print(tempData[i]);

@@ -226,7 +226,7 @@ class BMP384
         void setFIFOWatermarkSamples(uint8_t numSamples);
         uint16_t getFIFOLengthBytes();
         uint8_t getFIFOLengthSamples();
-        int16_t readFIFO(float* tempData, float* pressData, uint16_t numData);
+        uint8_t readFIFO(float* tempData, float* pressData, uint8_t numData);
         void flushFIFO();
 
     private:
