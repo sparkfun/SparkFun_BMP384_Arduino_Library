@@ -126,13 +126,13 @@ union BMP384_InterruptConfig
 {
     struct
     {
-        uint8_t openDrain     : 1;
-        uint8_t activeHigh    : 1;
-        uint8_t latch         : 1;
-        uint8_t fifoWatermark : 1;
-        uint8_t fifoFull      : 1;
+        uint8_t openDrain     : 1; // Open-drain or push/pull
+        uint8_t activeHigh    : 1; // Active high or low signal level
+        uint8_t latch         : 1; // Prevent interrupt from automatically clearing
+        uint8_t fifoWatermark : 1; // Trigger interrupt when FIFO watermark is reached
+        uint8_t fifoFull      : 1; // Trigger interrupt when FIFO is full
         uint8_t               : 1; // Padding
-        uint8_t dataReady     : 1;
+        uint8_t dataReady     : 1; // Trigger interrupt when measurement is complete
     } flags;
     uint8_t registerVal;
 };
@@ -142,10 +142,10 @@ union BMP384_InterruptStatus
 {
     struct
     {
-        uint8_t fifoWatermark : 1;
-        uint8_t fifoFull      : 1;
+        uint8_t fifoWatermark : 1; // FIFO watermark is reached
+        uint8_t fifoFull      : 1; // FIFO is full
         uint8_t               : 1; // Padding
-        uint8_t dataReady     : 1;
+        uint8_t dataReady     : 1; // Measurement is complete
     } flags;
     uint8_t registerVal;
 };
@@ -155,14 +155,14 @@ union BMP384_FIFOConfig
 {
     struct
     {
-        uint8_t fifoEnable        : 1;
-        uint8_t stopOnFull        : 1;
-        uint8_t timeEnable        : 1;
-        uint8_t pressEnable       : 1;
-        uint8_t tempEnable        : 1;
-        uint8_t                   : 3; // Padding
-        uint8_t subsampling       : 3;
-        uint8_t dataSelect        : 2;
+        uint8_t fifoEnable    : 1; // Enable the FIFO buffer
+        uint8_t stopOnFull    : 1; // Stop writing to FIFO once full, or overwrite oldest data
+        uint8_t timeEnable    : 1; // Enable sensor time, only 1 frame at end of buffer
+        uint8_t pressEnable   : 1; // Enable pressure sensor recording
+        uint8_t tempEnable    : 1; // Enable temperature sensor recording
+        uint8_t               : 3; // Padding
+        uint8_t subsampling   : 3; // Set subsampling, actually 2^subsampling
+        uint8_t dataSelect    : 2; // Unfiltered (0) or filtered (1) data
     } flags;
     uint16_t registerVals;
 };
