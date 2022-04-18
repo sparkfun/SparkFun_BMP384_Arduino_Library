@@ -261,7 +261,7 @@ class BMP384
         uint8_t spiCSPin;
 
         // SPI bus settings
-        SPISettings spiSettings{1000000, MSBFIRST, SPI_MODE0};
+        SPISettings spiSettings{100000, MSBFIRST, SPI_MODE0};
 
         // Expected number of bytes per FIFO frame, used for watermark
         uint16_t numBytesPerFIFOFrame = 1;
