@@ -1,46 +1,75 @@
 #include <Wire.h>
 #include "SparkFunBMP384.h"
 
+// Create a new sensor object
 BMP384 pressureSensor;
+
+// I2C address selection
+uint8_t i2cAddress = BMP384_I2C_ADDRESS_DEFAULT; // 0x77
+//uint8_t i2cAddress = BMP384_I2C_ADDRESS_SECONDARY; // 0x76
 
 void setup()
 {
+    // Start serial
     Serial.begin(115200);
     Serial.println("BMP384 example begin!");
 
+    // Initialize the I2C library
     Wire.begin();
 
-    // Uncomment to change I2C address from default
-    //pressureSensor.setI2CAddress(BMP384_I2C_ADDRESS_0);
-
-    // Check if sensor is connected
-    while(!pressureSensor.beginI2C())
+    // Check if sensor is connected and initialize
+    // Address is optional (defaults to 0x77)
+    while(pressureSensor.beginI2C(i2cAddress) != BMP3_OK)
     {
         // Not connected, inform user
         Serial.println("Error: BMP384 not connected, check wiring and I2C address!");
+        Serial.println(i2cAddress);
 
         // Wait a bit to see if connection is established
         delay(1000);
     }
 
     Serial.println("BMP384 connected!");
+    
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
 
-    // By default, the filter coefficient is set to 0 (no filtering). It can be
-    // set to any power of 2 minus 1, with a max of 127 (2^7 - 1), which causes
-    // the measurements to be smoothed out
-    pressureSensor.setFilterCoefficient(127);
+    // By default, the filter coefficient is set to 0 (no filtering). We can
+    // smooth out the measurements by increasing the coefficient
+    err = pressureSensor.setFilterCoefficient(BMP3_IIR_FILTER_COEFF_127);
+    if(err)
+    {
+        // Setting ODR failed, most likely an invalid coefficient (code -3)
+        Serial.print("Error getting data from sensor! Error code: ");
+        Serial.println(err);
+    }
 }
 
 void loop()
 {
-    // Print temperature and pressure every 100ms (faster than normal to see effects)
-    Serial.print("Temperature (C): ");
-    Serial.print(pressureSensor.getTemperature());
-    
-    Serial.print("\t\t");
+    // Get measurements from the sensor
+    bmp3_data data = {0};
+    int8_t err = pressureSensor.getSensorData(&data);
 
-    Serial.print("Pressure (Pa): ");
-    Serial.println(pressureSensor.getPressure());
+    // Check whether data was acquired successfully
+    if(err == BMP3_OK)
+    {
+        // Acquisistion succeeded, print temperature and pressure
+        Serial.print("Temperature (C): ");
+        Serial.print(data.temperature);
 
+        Serial.print("\t\t");
+
+        Serial.print("Pressure (Pa): ");
+        Serial.println(data.pressure);
+    }
+    else
+    {
+        // Acquisition failed, most likely a communication error (code -2)
+        Serial.print("Error getting data from sensor! Error code: ");
+        Serial.println(err);
+    }
+
+    // Print every 100ms to see effects of filter
     delay(100);
 }
