@@ -41,6 +41,9 @@ class BMP384
         // Output data rate (ODR) control
         int8_t setODRFrequency(uint8_t odr);
 
+        // IIR filter control
+        int8_t setFilterCoefficient(uint8_t coefficient);
+
         // Interrupt control
         int8_t setInterruptSettings(bmp3_int_ctrl_settings interruptSettings);
         int8_t getInterruptStatus(bmp3_int_status* interruptStatus);

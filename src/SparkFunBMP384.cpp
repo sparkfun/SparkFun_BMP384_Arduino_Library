@@ -111,6 +111,25 @@ int8_t BMP384::setODRFrequency(uint8_t odr)
     return bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
 }
 
+int8_t BMP384::setFilterCoefficient(uint8_t coefficient)
+{
+    // Check whether coefficient is valid
+    if(coefficient > BMP3_IIR_FILTER_COEFF_127)
+    {
+        return BMP3_E_INVALID_ODR_OSR_SETTINGS;
+    }
+    
+    // Set up filter settings
+    struct bmp3_settings settings = {0};
+    settings.odr_filter.iir_filter = coefficient;
+
+    // Create bit mask for which settings we want to change
+    uint16_t settingsMask = BMP3_SEL_IIR_FILTER;
+
+    // Set sensor settings
+    return bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
+}
+
 int8_t BMP384::setInterruptSettings(bmp3_int_ctrl_settings interruptSettings)
 {
     // Set up interrupt settings
