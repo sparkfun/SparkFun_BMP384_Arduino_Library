@@ -40,6 +40,11 @@ class BMP384
 
         // Output data rate (ODR) control
         int8_t setODRFrequency(uint8_t odr);
+        int8_t getODRFrequency(uint8_t* odr);
+
+        // Oversampling (OSR) control
+        int8_t setOSRMultipliers(bmp3_odr_filter_settings osrMultipliers);
+        int8_t getOSRMultipliers(bmp3_odr_filter_settings* osrMultipliers);
 
         // IIR filter control
         int8_t setFilterCoefficient(uint8_t coefficient);
@@ -51,6 +56,12 @@ class BMP384
     private:
         // Sensor initialization, after communication interface has been selected
         int8_t begin();
+        
+        // Calculates the minimum ODR setting given
+        uint8_t calculateMinODR(bmp3_odr_filter_settings osrMultipliers);
+        
+        // Helper function for computing log_2(x)
+        float log2(float x);
 
         // Read/write helper functions
         static BMP3_INTF_RET_TYPE readRegisters(uint8_t regAddress, uint8_t* dataBuffer, uint32_t numBytes, void* interfacePtr);
