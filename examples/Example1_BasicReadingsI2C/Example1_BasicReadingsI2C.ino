@@ -35,16 +35,27 @@ void setup()
 void loop()
 {
     // Get measurements from the sensor
-    bmp3_data data = pressureSensor.getSensorData();
+    bmp3_data data = {0};
+    int8_t err = pressureSensor.getSensorData(&data);
 
-    // Print temperature and pressure
-    Serial.print("Temperature (C): ");
-    Serial.print(data.temperature);
-    
-    Serial.print("\t\t");
+    // Check whether data was acquired successfully
+    if(err == BMP3_OK)
+    {
+        // Acquisistion succeeded, print temperature and pressure
+        Serial.print("Temperature (C): ");
+        Serial.print(data.temperature);
 
-    Serial.print("Pressure (Pa): ");
-    Serial.println(data.pressure);
+        Serial.print("\t\t");
+
+        Serial.print("Pressure (Pa): ");
+        Serial.println(data.pressure);
+    }
+    else
+    {
+        // Acquisition failed, most likely a communication error (code -2)
+        Serial.print("Error getting data from sensor! Error code: ");
+        Serial.println(err);
+    }
 
     // Only print every second
     delay(1000);

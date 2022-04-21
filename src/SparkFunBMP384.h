@@ -36,7 +36,10 @@ class BMP384
         int8_t beginSPI(uint8_t csPin, uint32_t clockFrequency = 100000);
 
         // Data acquisistion
-        bmp3_data getSensorData();
+        int8_t getSensorData(bmp3_data* data);
+
+        // Output data rate (ODR) control
+        // int8_t 
 
     private:
         // Sensor initialization, after communication interface has been selected

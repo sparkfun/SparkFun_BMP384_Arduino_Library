@@ -87,11 +87,9 @@ int8_t BMP384::beginSPI(uint8_t csPin, uint32_t clockFrequency)
     return begin();
 }
 
-bmp3_data BMP384::getSensorData()
+int8_t BMP384::getSensorData(bmp3_data* data)
 {
-    bmp3_data data = {0};
-    bmp3_get_sensor_data(BMP3_PRESS_TEMP, &data, &sensor);
-    return data;
+    return bmp3_get_sensor_data(BMP3_PRESS_TEMP, data, &sensor);
 }
 
 BMP3_INTF_RET_TYPE BMP384::readRegisters(uint8_t regAddress, uint8_t* dataBuffer, uint32_t numBytes, void* interfacePtr)
