@@ -39,7 +39,11 @@ class BMP384
         int8_t getSensorData(bmp3_data* data);
 
         // Output data rate (ODR) control
-        // int8_t 
+        int8_t setODRFrequency(uint8_t odr);
+
+        // Interrupt control
+        int8_t setInterruptSettings(bmp3_int_ctrl_settings interruptSettings);
+        int8_t getInterruptStatus(bmp3_int_status* interruptStatus);
 
     private:
         // Sensor initialization, after communication interface has been selected

@@ -8,7 +8,7 @@ BMP384::BMP384()
 int8_t BMP384::begin()
 {
     // Variable to track errors returned by API calls
-    int8_t err = 0;
+    int8_t err = BMP3_OK;
 
     // Set helper function pointers
     sensor.read = readRegisters;
@@ -90,6 +90,57 @@ int8_t BMP384::beginSPI(uint8_t csPin, uint32_t clockFrequency)
 int8_t BMP384::getSensorData(bmp3_data* data)
 {
     return bmp3_get_sensor_data(BMP3_PRESS_TEMP, data, &sensor);
+}
+
+int8_t BMP384::setODRFrequency(uint8_t odr)
+{
+    // Check whether ODR is valid
+    if(odr > BMP3_ODR_0_001_HZ)
+    {
+        return BMP3_E_INVALID_ODR_OSR_SETTINGS;
+    }
+    
+    // Set up ODR settings
+    struct bmp3_settings settings = {0};
+    settings.odr_filter.odr = odr;
+
+    // Create bit mask for which settings we want to change
+    uint16_t settingsMask = BMP3_SEL_ODR;
+
+    // Set sensor settings
+    return bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
+}
+
+int8_t BMP384::setInterruptSettings(bmp3_int_ctrl_settings interruptSettings)
+{
+    // Set up interrupt settings
+    struct bmp3_settings settings = {0};
+    settings.int_settings = interruptSettings;
+
+    // Create bit mask for which settings we want to change
+    uint16_t settingsMask = BMP3_SEL_OUTPUT_MODE | BMP3_SEL_LEVEL | BMP3_SEL_DRDY_EN;
+
+    // Set sensor settings
+    return bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
+}
+
+int8_t BMP384::getInterruptStatus(bmp3_int_status* interruptStatus)
+{
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
+
+    // Grab status values from the sensor
+    bmp3_status status = {0};
+    err = bmp3_get_status(&status, &sensor);
+    if(err)
+    {
+        return err;
+    }
+
+    // Copy over the interrupt status only
+    memcpy(interruptStatus, &status.intr, sizeof(bmp3_int_status));
+
+    return BMP3_OK;
 }
 
 BMP3_INTF_RET_TYPE BMP384::readRegisters(uint8_t regAddress, uint8_t* dataBuffer, uint32_t numBytes, void* interfacePtr)
