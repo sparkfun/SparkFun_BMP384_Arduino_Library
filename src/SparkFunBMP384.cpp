@@ -18,7 +18,7 @@ int8_t BMP384::begin()
 
     // Initialize the sensor
     err = bmp3_init(&sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -33,7 +33,7 @@ int8_t BMP384::begin()
 
     // Set sensor settings
     err = bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -41,7 +41,7 @@ int8_t BMP384::begin()
     // Set to normal mode
     settings.op_mode = BMP3_MODE_NORMAL;
     err = bmp3_set_op_mode(&settings, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -100,7 +100,7 @@ int8_t BMP384::getSensorStatus(bmp3_sens_status* sensorStatus)
     // Grab status values from the sensor
     bmp3_status status = {0};
     err = bmp3_get_status(&status, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -125,7 +125,7 @@ int8_t BMP384::setODRFrequency(uint8_t odr)
     // Grab current OSR settings
     struct bmp3_odr_filter_settings osrMultipliers = {0};
     err = getOSRMultipliers(&osrMultipliers);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -155,7 +155,7 @@ int8_t BMP384::getODRFrequency(uint8_t* odr)
     // Get sensor settings
     struct bmp3_settings settings = {0};
     err =  bmp3_get_sensor_settings(&settings, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -185,7 +185,7 @@ int8_t BMP384::setOSRMultipliers(bmp3_odr_filter_settings osrMultipliers)
 
     // Grab current ODR, it may need to be increased for these OSR settings
     err = getODRFrequency(&settings.odr_filter.odr);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -203,7 +203,7 @@ int8_t BMP384::setOSRMultipliers(bmp3_odr_filter_settings osrMultipliers)
 
         // Set sensor settings
         err = bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
-        if(err)
+        if(err != BMP3_OK)
         {
             return err;
         }
@@ -224,7 +224,7 @@ int8_t BMP384::getOSRMultipliers(bmp3_odr_filter_settings* osrMultipliers)
     // Get sensor settings
     struct bmp3_settings settings = {0};
     err =  bmp3_get_sensor_settings(&settings, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -276,7 +276,7 @@ int8_t BMP384::getInterruptStatus(bmp3_int_status* interruptStatus)
     // Grab status values from the sensor
     bmp3_status status = {0};
     err = bmp3_get_status(&status, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -311,7 +311,7 @@ int8_t BMP384::setFIFOWatermark(uint8_t numData)
     // Get current FIFO settings
     bmp3_fifo_settings fifoSettings = {0};
     bmp3_get_fifo_settings(&fifoSettings, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -328,7 +328,7 @@ int8_t BMP384::getFIFOLength(uint8_t* numData)
     // Grab FIFO length in bytes
     uint16_t fifoLengthBytes = 0;
     err = bmp3_get_fifo_length(&fifoLengthBytes, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -336,7 +336,7 @@ int8_t BMP384::getFIFOLength(uint8_t* numData)
     // Get current FIFO settings
     bmp3_fifo_settings fifoSettings = {0};
     bmp3_get_fifo_settings(&fifoSettings, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -359,7 +359,7 @@ int8_t BMP384::getFIFOData(bmp3_data* data, uint8_t numData)
     // Get current FIFO settings
     bmp3_fifo_settings fifoSettings = {0};
     bmp3_get_fifo_settings(&fifoSettings, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
@@ -373,7 +373,7 @@ int8_t BMP384::getFIFOData(bmp3_data* data, uint8_t numData)
     bmp3_fifo_data fifoData = {0};
     fifoData.buffer = byteBuffer;
     err = bmp3_get_fifo_data(&fifoData, &fifoSettings, &sensor);
-    if(err)
+    if(err != BMP3_OK)
     {
         return err;
     }
