@@ -57,7 +57,7 @@ void setup()
         .output_mode = BMP3_INT_PIN_PUSH_PULL,   // Push-pull or open-drain
         .level       = BMP3_INT_PIN_ACTIVE_HIGH, // Active low or high
         .latch       = BMP3_INT_PIN_NON_LATCH,   // Latch or non-latch
-        .drdy_en     = true                      // Trigger interrupts when data is ready
+        .drdy_en     = BMP3_ENABLE               // Trigger interrupts when data is ready
     };
     err = pressureSensor.setInterruptSettings(interruptSettings);
     if(err != BMP3_OK)
