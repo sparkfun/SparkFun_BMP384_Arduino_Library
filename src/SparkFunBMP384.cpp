@@ -268,6 +268,25 @@ int8_t BMP384::getInterruptStatus(bmp3_int_status* interruptStatus)
     return BMP3_OK;
 }
 
+int8_t BMP384::getSensorStatus(bmp3_sens_status* sensorStatus)
+{
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
+
+    // Grab status values from the sensor
+    bmp3_status status = {0};
+    err = bmp3_get_status(&status, &sensor);
+    if(err)
+    {
+        return err;
+    }
+
+    // Copy over the sensor status only
+    memcpy(sensorStatus, &status.sensor, sizeof(bmp3_sens_status));
+
+    return BMP3_OK;
+}
+
 uint8_t BMP384::calculateMinODR(bmp3_odr_filter_settings osrMultipliers)
 {
     // Compute the measurement time in microseconds, as per the datasheet's equation

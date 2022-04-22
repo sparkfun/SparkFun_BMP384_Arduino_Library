@@ -37,6 +37,7 @@ class BMP384
 
         // Data acquisistion
         int8_t getSensorData(bmp3_data* data);
+        int8_t getSensorStatus(bmp3_sens_status* sensorStatus);
 
         // Output data rate (ODR) control
         int8_t setODRFrequency(uint8_t odr);
