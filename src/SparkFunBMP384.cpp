@@ -311,6 +311,13 @@ float BMP384::log2(float x)
 
 BMP3_INTF_RET_TYPE BMP384::readRegisters(uint8_t regAddress, uint8_t* dataBuffer, uint32_t numBytes, void* interfacePtr)
 {
+    // Make sure the number of bytes is valid
+    if(numBytes == 0)
+    {
+        return BMP3_E_INVALID_LEN;
+    }
+
+    // Get interface data
     BMP384_InterfaceData* interfaceData = (BMP384_InterfaceData*) interfacePtr;
 
     switch(interfaceData->interface)
@@ -328,7 +335,7 @@ BMP3_INTF_RET_TYPE BMP384::readRegisters(uint8_t regAddress, uint8_t* dataBuffer
             Wire.requestFrom(interfaceData->i2cAddress, numBytes);
 
             // Store all requested bytes
-            for(uint8_t i = 0; i < numBytes && Wire.available(); i++)
+            for(uint32_t i = 0; i < numBytes && Wire.available(); i++)
             {
                 dataBuffer[i] = Wire.read();
             }
@@ -341,7 +348,7 @@ BMP3_INTF_RET_TYPE BMP384::readRegisters(uint8_t regAddress, uint8_t* dataBuffer
             SPI.transfer(regAddress | 0x80);
 
             // Read all requested bytes
-            for(uint8_t i = 0; i < numBytes; i++)
+            for(uint32_t i = 0; i < numBytes; i++)
             {
                 dataBuffer[i] = SPI.transfer(0);;
             }
@@ -357,6 +364,12 @@ BMP3_INTF_RET_TYPE BMP384::readRegisters(uint8_t regAddress, uint8_t* dataBuffer
 
 BMP3_INTF_RET_TYPE BMP384::writeRegisters(uint8_t regAddress, const uint8_t* dataBuffer, uint32_t numBytes, void* interfacePtr)
 {
+    // Make sure the number of bytes is valid
+    if(numBytes == 0)
+    {
+        return BMP3_E_INVALID_LEN;
+    }
+    // Get interface data
     BMP384_InterfaceData* interfaceData = (BMP384_InterfaceData*) interfacePtr;
 
     // Determine which interface we're using
