@@ -59,29 +59,41 @@ void setup()
 
 void loop()
 {
-    // Get measurements from the sensor
-    bmp3_data data = {0};
-    int8_t err = pressureSensor.getSensorData(&data);
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
 
-    // Check whether data was acquired successfully
-    if(err == BMP3_OK)
+    // Get sensor status
+    bmp3_sens_status sensorStatus = {0};
+    err = pressureSensor.getSensorStatus(&sensorStatus);
+    if(err)
     {
-        // Acquisistion succeeded, print temperature and pressure
-        Serial.print("Temperature (C): ");
-        Serial.print(data.temperature);
-
-        Serial.print("\t\t");
-
-        Serial.print("Pressure (Pa): ");
-        Serial.println(data.pressure);
-    }
-    else
-    {
-        // Acquisition failed, most likely a communication error (code -2)
-        Serial.print("Error getting data from sensor! Error code: ");
+        // Interrupt settings failed, most likely a communication error (code -2)
+        Serial.print("Interrupt settings failed! Error code: ");
         Serial.println(err);
     }
 
-    // Only print every second
-    delay(1000);
+    // Check whether sensor data is ready
+    if(sensorStatus.drdy_press || sensorStatus.drdy_temp)
+    {
+        // Measurement is complete, get measurements from the sensor
+        bmp3_data data = {0};
+        err = pressureSensor.getSensorData(&data);
+
+        // Check whether data was acquired successfully
+        if(err == BMP3_OK)
+        {
+            // Acquisistion succeeded, print temperature and pressure
+            Serial.print("Temperature (C): ");
+            Serial.print(data.temperature);
+            Serial.print("\t\t");
+            Serial.print("Pressure (Pa): ");
+            Serial.println(data.pressure);
+        }
+        else
+        {
+            // Acquisition failed, most likely a communication error (code -2)
+            Serial.print("Error getting data from sensor! Error code: ");
+            Serial.println(err);
+        }
+    }
 }
