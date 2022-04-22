@@ -38,8 +38,8 @@ void setup()
     err = pressureSensor.setFilterCoefficient(BMP3_IIR_FILTER_COEFF_127);
     if(err)
     {
-        // Setting ODR failed, most likely an invalid coefficient (code -3)
-        Serial.print("Error getting data from sensor! Error code: ");
+        // Setting coefficient failed, most likely an invalid coefficient (code -3)
+        Serial.print("Error setting filter coefficient! Error code: ");
         Serial.println(err);
     }
 }

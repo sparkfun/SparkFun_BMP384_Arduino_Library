@@ -46,7 +46,7 @@ void setup()
     err = pressureSensor.setOSRMultipliers(osrMultipliers);
     if(err)
     {
-        // Setting ODR failed, most likely an invalid multiplier (code -3)
+        // Setting OSR failed, most likely an invalid multiplier (code -3)
         Serial.print("Error setting OSR! Error code: ");
         Serial.println(err);
     }

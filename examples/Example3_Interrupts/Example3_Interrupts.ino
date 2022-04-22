@@ -89,7 +89,7 @@ void loop()
         err = pressureSensor.getInterruptStatus(&interruptStatus);
         if(err != BMP3_OK)
         {
-            // Acquisition failed, most likely a communication error (code -2)
+            // Status get failed, most likely a communication error (code -2)
             Serial.print("Get interrupt status failed! Error code: ");
             Serial.println(err);
             return;
