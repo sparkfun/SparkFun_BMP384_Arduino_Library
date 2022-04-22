@@ -1,30 +1,40 @@
 #include <Wire.h>
 #include "SparkFunBMP384.h"
 
+// Create a new sensor object
 BMP384 pressureSensor;
 
+// I2C address selection
+uint8_t i2cAddress = BMP384_I2C_ADDRESS_DEFAULT; // 0x77
+//uint8_t i2cAddress = BMP384_I2C_ADDRESS_SECONDARY; // 0x76
+
+// Pin used for interrupt detection
 int interruptPin = 2;
 
+// Flag to know when interrupts occur
 volatile bool interruptOccurred = false;
 
-const uint16_t numSamples = 5;
-float tempData[numSamples] = {0};
-float pressData[numSamples] = {0};
+// Create a buffer for FIFO data
+// Note - on some systems (eg. Arduino Uno), warnings will be generated
+// when numSamples is large (eg. >= 5)
+const uint8_t numSamples = 5;
+bmp3_data fifoData[numSamples];
 
-uint8_t numFIFOSamples = 0;
+// Track FIFO length to give progress updates
+uint8_t previousFIFOLength = 0;
 
 void setup()
 {
+    // Start serial
     Serial.begin(115200);
-    Serial.println("BMP384 example begin!");
+    Serial.println("BMP384 Example6 begin!");
 
+    // Initialize the I2C library
     Wire.begin();
 
-    // Uncomment to change I2C address from default
-    //pressureSensor.setI2CAddress(BMP384_I2C_ADDRESS_0);
-
-    // Check if sensor is connected
-    while(!pressureSensor.beginI2C())
+    // Check if sensor is connected and initialize
+    // Address is optional (defaults to 0x77)
+    while(pressureSensor.beginI2C(i2cAddress) != BMP3_OK)
     {
         // Not connected, inform user
         Serial.println("Error: BMP384 not connected, check wiring and I2C address!");
@@ -35,102 +45,165 @@ void setup()
 
     Serial.println("BMP384 connected!");
 
-    // By default, the BMP384 samples every 5ms. We can set the ODR prescaler
-    // to slow down the output data rate. The prescaler should be a power of 2,
-    // with a maximum of 2^17. We can use a prescaler of 256 to get measurements
-    // every 1.28 seconds
-    pressureSensor.setODRPrescaler(256);
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
+
+    // By default, the BMP384 samples at 200Hz. However we don't want interrupts to
+    // trigger that fast in this example, so we can lower the output data rate (ODR)
+    // with this function. In this case, we're setting it to 1.5Hz. For all possible
+    // ODR settings, see bmp3_defs.h (line 232-249)
+    err = pressureSensor.setODRFrequency(BMP3_ODR_1_5_HZ);
+    if(err != BMP3_OK)
+    {
+        // Setting ODR failed, most likely an invalid frequncy (code -3)
+        Serial.print("ODR setting failed! Error code: ");
+        Serial.println(err);
+    }
 
     // Configure the FIFO buffer to store pressure and temperature data
-    BMP384_FIFOConfig fifoConfig =
+    // Note - this is also where the FIFO interrupt conditions are set
+    // Note - this must be called before any other FIFO functions
+    bmp3_fifo_settings fifoSettings =
     {
-        .flags =
-        {
-            .fifoEnable = true,  // Enable the FIFO buffer
-            .stopOnFull = false, // Stop writing to FIFO once full, or overwrite oldest data
-            .timeEnable = false, // Enable sensor time, only 1 frame at end of buffer
-            .pressEnable = true, // Enable pressure sensor recording
-            .tempEnable = true,  // Enable temperature sensor recording
-            .subsampling = 0,    // Set subsampling, actually 2^subsampling
-            .dataSelect = 0      // Unfiltered (0) or filtered (1) data
-        }
+        .mode            = BMP3_ENABLE,  // Enable the FIFO buffer
+        .stop_on_full_en = BMP3_DISABLE, // Stop writing to FIFO once full, or overwrite oldest data
+        .time_en         = BMP3_DISABLE, // Enable sensor time, only 1 frame at end of buffer
+        .press_en        = BMP3_ENABLE,  // Enable pressure sensor recording
+        .temp_en         = BMP3_ENABLE,  // Enable temperature sensor recording
+        .down_sampling   = 0,            // Set downsampling factor, actually 2^down_sampling
+        .filter_en       = BMP3_DISABLE, // Enable data filtering
+        .fwtm_en         = BMP3_ENABLE,  // Trigger interrupt on FIFO watermark
+        .ffull_en        = BMP3_DISABLE  // Trigger interrupt on FIFO full
     };
-    pressureSensor.setFIFOConfig(fifoConfig);
-
-    // Set FIFO watermark to desired number of samples
-    pressureSensor.setFIFOWatermarkSamples(numSamples);
-
-    // Set an interrupt to occur once the watermark has been reached
-    BMP384_InterruptConfig interruptConfig =
+    err = pressureSensor.setFIFOSettings(fifoSettings);
+    if(err != BMP3_OK)
     {
-        .flags =
-        {
-            .openDrain     = false,
-            .activeHigh    = true,
-            .latch         = false,
-            .fifoWatermark = true,
-            .fifoFull      = false,
-            .dataReady     = false
-        }
+        // FIFO settings failed, most likely a communication error (code -2)
+        Serial.print("FIFO settings failed! Error code: ");
+        Serial.println(err);
+    }
+
+    // Set watermark to number of samples we want
+    err = pressureSensor.setFIFOWatermark(numSamples);
+    if(err != BMP3_OK)
+    {
+        // Setting watermark failed, most likely too many samples (code 2)
+        Serial.print("Watermark setting failed! Error code: ");
+        Serial.println(err);
+    }
+
+    // Configure the BMP384 to trigger interrupts when the FIFO watermark has been
+    // reached. Note - setInterruptSettings() only sets the interrupt behavior and
+    // the data ready interrupt condition. The FIFO interrupt conditions must be
+    // set with setFIFOSettings()
+    bmp3_int_ctrl_settings interruptSettings =
+    {
+        .output_mode = BMP3_INT_PIN_PUSH_PULL,   // Push-pull or open-drain
+        .level       = BMP3_INT_PIN_ACTIVE_HIGH, // Active low or high
+        .latch       = BMP3_INT_PIN_NON_LATCH,   // Latch or non-latch
+        .drdy_en     = BMP3_DISABLE              // Trigger interrupts when data is ready
     };
-    pressureSensor.setInterruptConfig(interruptConfig);
+    err = pressureSensor.setInterruptSettings(interruptSettings);
+    if(err != BMP3_OK)
+    {
+        // Interrupt settings failed, most likely a communication error (code -2)
+        Serial.print("Interrupt settings failed! Error code: ");
+        Serial.println(err);
+    }
 
     // Setup interrupt handler
     attachInterrupt(digitalPinToInterrupt(interruptPin), bmp384InterruptHandler, RISING);
-
-    // Changing the FIFO config causes extra data to be stored in the FIFO
-    // buffer. We don't care about these bytes, and they add to the watermark,
-    // so we can get rid of them by flushing the buffer
-    pressureSensor.flushFIFO();
 }
 
 void loop()
 {
-    // Wait for number of samples in FIFO buffer to change
-    if(numFIFOSamples != pressureSensor.getFIFOLengthSamples())
-    {
-        // Update number of samples
-        numFIFOSamples = pressureSensor.getFIFOLengthSamples();
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
 
-        // Print FIFO length
+    // Get number of data samples currently stored in FIFO buffer
+    uint8_t currentFIFOLength = 0;
+    err = pressureSensor.getFIFOLength(&currentFIFOLength);
+    if(err != BMP3_OK)
+    {
+        // FIFO length failed, most likely a communication error (code -2)
+        Serial.print("FIFO length failed! Error code: ");
+        Serial.println(err);
+
+        // If getFIFOLength() failed this time, it will most likely fail next time. So
+        // let's wait a bit before trying again
+        delay(1000);
+    }
+
+    // Check whether number of samples in FIFO buffer has changed
+    if(previousFIFOLength != currentFIFOLength)
+    {
+        // Update FIFO length
+        previousFIFOLength = currentFIFOLength;
+
+        // Print current FIFO length
         Serial.print("FIFO Length: ");
-        Serial.print(numFIFOSamples);
+        Serial.print(currentFIFOLength);
         Serial.print("/");
         Serial.println(numSamples);
     }
 
-    // Check whether interrupt occurred 
+    // Wait for interrupt to occur
     if(interruptOccurred)
     {
-        // Make sure this is the "data ready" interrupt condition
-        BMP384_InterruptStatus status = pressureSensor.getInterruptStatus();
-        if(status.flags.fifoWatermark)
-        {
-            // Read out FIFO data
-            Serial.println("FIFO watermark reached! Reading FIFO data...");
-            uint8_t numDataRead = pressureSensor.readFIFO(tempData, pressData, numSamples);
-
-            // Check whether all data was acquired from FIFO buffer
-            if(numDataRead != numSamples)
-            {
-                Serial.println("Warning: not all data acquired from FIFO!");
-            }
-
-            // Print out all FIFO data
-            for(uint8_t i = 0; i < numDataRead; i++)
-            {
-                Serial.print("Temperature (C): ");
-                Serial.print(tempData[i]);
-                
-                Serial.print("\t\t");
-
-                Serial.print("Pressure (Pa): ");
-                Serial.println(pressData[i]);
-            }
-        }
-
         // Reset flag for next interrupt
         interruptOccurred = false;
+
+        Serial.println("Interrupt occurred!");
+
+        // Get the interrupt status to know which condition triggered
+        bmp3_int_status interruptStatus = {0};
+        err = pressureSensor.getInterruptStatus(&interruptStatus);
+        if(err != BMP3_OK)
+        {
+            // Status get failed, most likely a communication error (code -2)
+            Serial.print("Get interrupt status failed! Error code: ");
+            Serial.println(err);
+            return;
+        }
+
+        // Make sure this is the "FIFO watermerk" interrupt condition
+        if(interruptStatus.fifo_wm)
+        {
+            // Get FIFO data from the sensor
+            err = pressureSensor.getFIFOData(fifoData, numSamples);
+            if(err < BMP3_OK)
+            {
+                // FIFO data get failed, most likely a communication error (code -2)
+                Serial.print("Get FIFO data failed! Error code: ");
+                Serial.println(err);
+                return;
+            }
+            if(err > BMP3_OK)
+            {
+                // FIFO data get warning, most likely min/max pressure/temperature (codes 3/4/5/6)
+                // This is likely to occur on some systems (eg. Arduino Uno)
+                // when numSamples is large (eg. >= 5)
+                Serial.print("Get FIFO data warning! Error code: ");
+                Serial.println(err);
+            }
+
+            // Data was acquired successfully, print it all out
+            for(uint8_t i = 0; i < numSamples; i++)
+            {
+                Serial.print("Sample number: ");
+                Serial.print(i);
+                Serial.print("\t\t");
+                Serial.print("Temperature (C): ");
+                Serial.print(fifoData[i].temperature);
+                Serial.print("\t\t");
+                Serial.print("Pressure (Pa): ");
+                Serial.println(fifoData[i].pressure);
+            }
+        }
+        else
+        {
+            Serial.println("Wrong interrupt condition!");
+        }
     }
 }
 
