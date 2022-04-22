@@ -18,7 +18,7 @@ void setup()
 {
     // Start serial
     Serial.begin(115200);
-    Serial.println("BMP384 example begin!");
+    Serial.println("BMP384 Example3 begin!");
 
     // Initialize the I2C library
     Wire.begin();
@@ -29,7 +29,6 @@ void setup()
     {
         // Not connected, inform user
         Serial.println("Error: BMP384 not connected, check wiring and I2C address!");
-        Serial.println(i2cAddress);
 
         // Wait a bit to see if connection is established
         delay(1000);
@@ -42,7 +41,8 @@ void setup()
 
     // By default, the BMP384 samples at 200Hz. However we don't want interrupts to
     // trigger that fast in this example, so we can lower the output data rate (ODR)
-    // with this function. In this case, we're setting it to 1.5Hz
+    // with this function. In this case, we're setting it to 1.5Hz. For all possible
+    // ODR settings, see bmp3_defs.h (line 232-249)
     err = pressureSensor.setODRFrequency(BMP3_ODR_1_5_HZ);
     if(err != BMP3_OK)
     {
@@ -54,10 +54,10 @@ void setup()
     // Configure the BMP384 to trigger interrupts whenever a measurement is performed
     bmp3_int_ctrl_settings interruptSettings =
     {
-        .output_mode = BMP3_INT_PIN_PUSH_PULL,
-        .level       = BMP3_INT_PIN_ACTIVE_HIGH,
-        .latch       = BMP3_INT_PIN_NON_LATCH,
-        .drdy_en     = true
+        .output_mode = BMP3_INT_PIN_PUSH_PULL,   // Push-pull or open-drain
+        .level       = BMP3_INT_PIN_ACTIVE_HIGH, // Active low or high
+        .latch       = BMP3_INT_PIN_NON_LATCH,   // Latch or non-latch
+        .drdy_en     = true                      // Trigger interrupts when data is ready
     };
     err = pressureSensor.setInterruptSettings(interruptSettings);
     if(err != BMP3_OK)
@@ -108,9 +108,7 @@ void loop()
                 // Acquisistion succeeded, print temperature and pressure
                 Serial.print("Temperature (C): ");
                 Serial.print(data.temperature);
-
                 Serial.print("\t\t");
-
                 Serial.print("Pressure (Pa): ");
                 Serial.println(data.pressure);
             }

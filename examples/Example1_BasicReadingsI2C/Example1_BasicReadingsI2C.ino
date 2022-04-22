@@ -12,7 +12,7 @@ void setup()
 {
     // Start serial
     Serial.begin(115200);
-    Serial.println("BMP384 example begin!");
+    Serial.println("BMP384 Example1 begin!");
 
     // Initialize the I2C library
     Wire.begin();
@@ -23,7 +23,6 @@ void setup()
     {
         // Not connected, inform user
         Serial.println("Error: BMP384 not connected, check wiring and I2C address!");
-        Serial.println(i2cAddress);
 
         // Wait a bit to see if connection is established
         delay(1000);
@@ -44,9 +43,7 @@ void loop()
         // Acquisistion succeeded, print temperature and pressure
         Serial.print("Temperature (C): ");
         Serial.print(data.temperature);
-
         Serial.print("\t\t");
-
         Serial.print("Pressure (Pa): ");
         Serial.println(data.pressure);
     }

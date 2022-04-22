@@ -12,7 +12,7 @@ void setup()
 {
     // Start serial
     Serial.begin(115200);
-    Serial.println("BMP384 example begin!");
+    Serial.println("BMP384 Example5 begin!");
 
     // Initialize the I2C library
     Wire.begin();
