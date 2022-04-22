@@ -54,6 +54,12 @@ class BMP384
         int8_t setInterruptSettings(bmp3_int_ctrl_settings interruptSettings);
         int8_t getInterruptStatus(bmp3_int_status* interruptStatus);
 
+        // FIFO control
+        int8_t setFIFOSettings(bmp3_fifo_settings fifoSettings);
+        int8_t setFIFOWatermark(uint8_t numData);
+        int8_t getFIFOLength(uint8_t* numData);
+        int8_t getFIFOData(bmp3_data* data, uint8_t numData);
+
     private:
         // Sensor initialization, after communication interface has been selected
         int8_t begin();

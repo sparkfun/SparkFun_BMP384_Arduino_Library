@@ -287,6 +287,122 @@ int8_t BMP384::getInterruptStatus(bmp3_int_status* interruptStatus)
     return BMP3_OK;
 }
 
+int8_t BMP384::setFIFOSettings(bmp3_fifo_settings fifoSettings)
+{
+    // Create bit mask for which settings we want to change
+    uint16_t settingsMask = BMP3_SEL_FIFO_MODE | BMP3_SEL_FIFO_STOP_ON_FULL_EN
+        | BMP3_SEL_FIFO_TIME_EN | BMP3_SEL_FIFO_PRESS_EN | BMP3_SEL_FIFO_TEMP_EN
+        | BMP3_SEL_FIFO_DOWN_SAMPLING | BMP3_SEL_FIFO_FILTER_EN
+        | BMP3_SEL_FIFO_FWTM_EN | BMP3_SEL_FIFO_FULL_EN ;
+
+    // Set sensor settings
+    return bmp3_set_fifo_settings(settingsMask, &fifoSettings, &sensor);
+}
+
+int8_t BMP384::setFIFOWatermark(uint8_t numData)
+{
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
+
+    // Set requested number of data frames
+    bmp3_fifo_data fifoData = {0};
+    fifoData.req_frames = numData;
+
+    // Get current FIFO settings
+    bmp3_fifo_settings fifoSettings = {0};
+    bmp3_get_fifo_settings(&fifoSettings, &sensor);
+    if(err)
+    {
+        return err;
+    }
+
+    // Set watermark as requested
+    return bmp3_set_fifo_watermark(&fifoData, &fifoSettings, &sensor);
+}
+
+int8_t BMP384::getFIFOLength(uint8_t* numData)
+{
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
+
+    // Grab FIFO length in bytes
+    uint16_t fifoLengthBytes = 0;
+    err = bmp3_get_fifo_length(&fifoLengthBytes, &sensor);
+    if(err)
+    {
+        return err;
+    }
+
+    // Get current FIFO settings
+    bmp3_fifo_settings fifoSettings = {0};
+    bmp3_get_fifo_settings(&fifoSettings, &sensor);
+    if(err)
+    {
+        return err;
+    }
+
+    // Determine the number of bytes per data frame.
+    // 1 byte for header, 3 bytes for each sensor data
+    uint16_t bytesPerFrame = 1 + 3 * (fifoSettings.press_en + fifoSettings.temp_en);
+
+    // Set number of data frames
+    *numData = fifoLengthBytes / bytesPerFrame;
+
+    return BMP3_OK;
+}
+
+int8_t BMP384::getFIFOData(bmp3_data* data, uint8_t numData)
+{
+    // Variable to track errors returned by API calls
+    int8_t err = BMP3_OK;
+
+    // Get current FIFO settings
+    bmp3_fifo_settings fifoSettings = {0};
+    bmp3_get_fifo_settings(&fifoSettings, &sensor);
+    if(err)
+    {
+        return err;
+    }
+
+    // Create buffer to hold all bytes of FIFO buffer. bmp3_get_fifo_data() calls
+    // reset_fifo_index(), which will zero out 512 bytes of this buffer, so this
+    // needs to be 512 bytes!
+    uint8_t byteBuffer[512];
+
+    // Get all bytes out of FIFO buffer
+    bmp3_fifo_data fifoData = {0};
+    fifoData.buffer = byteBuffer;
+    err = bmp3_get_fifo_data(&fifoData, &fifoSettings, &sensor);
+    if(err)
+    {
+        return err;
+    }
+
+    // Determine the number of bytes per data frame.
+    // 1 byte for header, 3 bytes for each sensor data
+    uint16_t bytesPerFrame = 1 + 3 * (fifoSettings.press_en + fifoSettings.temp_en);
+
+    // bmp3_extract_fifo_data() will parse all bytes in byteBuffer into data frames.
+    // The buffer supplied to this function may not be big enough for all those
+    // frames, so we create our own frame buffer to definitely take it all
+    bmp3_data frameBuffer[fifoData.byte_count / bytesPerFrame];
+
+    // Parse raw data into temperature and pressure data
+    err = bmp3_extract_fifo_data(frameBuffer, &fifoData, &sensor);
+    if(err < BMP3_OK)
+    {
+        return err;
+    }
+
+    // Now copy all requested data into the caller's buffer
+    for(uint8_t i = 0; i < numData; i++)
+    {
+        data[i] = frameBuffer[i];
+    }
+
+    return err;
+}
+
 uint8_t BMP384::calculateMinODR(bmp3_odr_filter_settings osrMultipliers)
 {
     // Compute the measurement time in microseconds, as per the datasheet's equation
