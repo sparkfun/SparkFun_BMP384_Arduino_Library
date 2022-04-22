@@ -359,18 +359,23 @@ BMP3_INTF_RET_TYPE BMP384::writeRegisters(uint8_t regAddress, const uint8_t* dat
 {
     BMP384_InterfaceData* interfaceData = (BMP384_InterfaceData*) interfacePtr;
 
+    // Determine which interface we're using
     switch(interfaceData->interface)
     {
         case BMP3_I2C_INTF:
+            // Begin transmission
             Wire.beginTransmission(interfaceData->i2cAddress);
+
+            // Write the address
+            Wire.write(regAddress);
             
-            // Registers have to be written in address/data pairs
-            for(uint8_t i = 0; i < numBytes; i++)
+            // Write all the data
+            for(uint32_t i = 0; i < numBytes; i++)
             {
-                Wire.write(regAddress + i);
                 Wire.write(dataBuffer[i]);
             }
 
+            // End transmission
             if(Wire.endTransmission())
             {
                 return BMP3_E_COMM_FAIL;
@@ -378,14 +383,16 @@ BMP3_INTF_RET_TYPE BMP384::writeRegisters(uint8_t regAddress, const uint8_t* dat
             break;
 
         case BMP3_SPI_INTF:
-            // Start transmission
+            // Begin transmission
             SPI.beginTransaction(SPISettings(interfaceData->spiClockFrequency, MSBFIRST, SPI_MODE0));
             digitalWrite(interfaceData->spiCSPin, LOW);
             
-            // Registers have to be written in address/data pairs
-            for(uint8_t i = 0; i < numBytes; i++)
+            // Write the address
+            SPI.transfer(regAddress);
+            
+            // Write all the data
+            for(uint32_t i = 0; i < numBytes; i++)
             {
-                SPI.transfer(regAddress + i);
                 SPI.transfer(dataBuffer[i]);
             }
 
