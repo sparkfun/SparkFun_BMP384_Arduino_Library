@@ -197,20 +197,10 @@ int8_t BMP384::setOSRMultipliers(bmp3_odr_filter_settings osrMultipliers)
     if(settings.odr_filter.odr < minODR)
     {
         settings.odr_filter.odr = minODR;
-
-        // Create bit mask for which settings we want to change
-        uint16_t settingsMask = BMP3_SEL_ODR;
-
-        // Set sensor settings
-        err = bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
-        if(err != BMP3_OK)
-        {
-            return err;
-        }
     }
 
     // Create bit mask for which settings we want to change
-    uint16_t settingsMask = BMP3_SEL_TEMP_OS | BMP3_SEL_PRESS_OS;
+    uint16_t settingsMask = BMP3_SEL_TEMP_OS | BMP3_SEL_PRESS_OS | BMP3_SEL_ODR;
 
     // Set sensor settings
     return bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
