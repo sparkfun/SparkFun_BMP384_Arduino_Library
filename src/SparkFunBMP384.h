@@ -11,7 +11,7 @@
 #define BMP384_I2C_ADDRESS_DEFAULT BMP3_ADDR_I2C_SEC    // 0x77
 #define BMP384_I2C_ADDRESS_SECONDARY BMP3_ADDR_I2C_PRIM // 0x76
 
-// Struct to hold
+// Struct to hold data about the communication interface being used (I2C or SPI)
 struct BMP384_InterfaceData
 {
     // Communication interface (I2C or SPI)
