@@ -55,6 +55,22 @@ void setup()
     // setOSRMultipliers() will automatically increase the ODR if needed, but
     // will still return BMP3_OK. You can check whether it was changed by
     // calling getODRFrequency()
+    uint8_t odr = 0;
+    err = pressureSensor.getODRFrequency(&odr);
+    if(err)
+    {
+        // Interrupt settings failed, most likely a communication error (code -2)
+        Serial.print("Error getting ODR! Error code: ");
+        Serial.println(err);
+    }
+
+    // The true ODR frequency in Hz is [200 / (2^odr)]
+    Serial.print("ODR Frequency: ");
+    Serial.print(200 / pow(2, odr));
+    Serial.println("Hz");
+
+    // Give user time to read ODR
+    delay(1000);
 }
 
 void loop()
