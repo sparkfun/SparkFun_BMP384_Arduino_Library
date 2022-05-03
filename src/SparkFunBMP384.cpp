@@ -393,6 +393,11 @@ int8_t BMP384::getFIFOData(bmp3_data* data, uint8_t numData)
     return err;
 }
 
+int8_t BMP384::flushFIFO()
+{
+    return bmp3_fifo_flush(&sensor);
+}
+
 uint8_t BMP384::calculateMinODR(bmp3_odr_filter_settings osrMultipliers)
 {
     // Compute the measurement time in microseconds, as per the datasheet's equation

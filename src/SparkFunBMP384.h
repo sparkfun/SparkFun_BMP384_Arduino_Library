@@ -59,6 +59,7 @@ class BMP384
         int8_t setFIFOWatermark(uint8_t numData);
         int8_t getFIFOLength(uint8_t* numData);
         int8_t getFIFOData(bmp3_data* data, uint8_t numData);
+        int8_t flushFIFO();
 
     private:
         // Sensor initialization, after communication interface has been selected
