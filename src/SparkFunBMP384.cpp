@@ -10,43 +10,22 @@ int8_t BMP384::begin()
     // Variable to track errors returned by API calls
     int8_t err = BMP3_OK;
 
-    // Set helper function pointers
-    sensor.read = readRegisters;
-    sensor.write = writeRegisters;
-    sensor.delay_us = usDelay;
-    sensor.intf_ptr = &interfaceData;
-
     // Initialize the sensor
-    err = bmp3_init(&sensor);
+    err = init();
     if(err != BMP3_OK)
     {
         return err;
     }
 
-    // Set up default settings
-    struct bmp3_settings settings = {0};
-    settings.temp_en = BMP3_ENABLE;
-    settings.press_en = BMP3_ENABLE;
-
-    // Create bit mask for which settings we want to change
-    uint16_t settingsMask = BMP3_SEL_PRESS_EN | BMP3_SEL_TEMP_EN;
-
-    // Set sensor settings
-    err = bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
+    // Enable both pressure and temperature sensors
+    err = enablePressAndTemp(BMP3_ENABLE, BMP3_ENABLE);
     if(err != BMP3_OK)
     {
         return err;
     }
 
     // Set to normal mode
-    settings.op_mode = BMP3_MODE_NORMAL;
-    err = bmp3_set_op_mode(&settings, &sensor);
-    if(err != BMP3_OK)
-    {
-        return err;
-    }
-
-    return BMP3_OK;
+    return setMode(BMP3_MODE_NORMAL);
 }
 
 int8_t BMP384::beginI2C(uint8_t address)
@@ -85,6 +64,47 @@ int8_t BMP384::beginSPI(uint8_t csPin, uint32_t clockFrequency)
 
     // Initialize sensor
     return begin();
+}
+
+int8_t BMP384::init()
+{
+    // Set helper function pointers
+    sensor.read = readRegisters;
+    sensor.write = writeRegisters;
+    sensor.delay_us = usDelay;
+    sensor.intf_ptr = &interfaceData;
+
+    // Initialize the sensor
+    return bmp3_init(&sensor);
+}
+
+int8_t BMP384::setMode(uint8_t mode)
+{
+    // Check whether this is a valid mode
+    if(mode != BMP3_MODE_SLEEP && mode != BMP3_MODE_FORCED && mode != BMP3_MODE_NORMAL)
+    {
+        // Invalid mode
+        return BMP3_E_CONFIGURATION_ERR;
+    }
+
+    // Mode is valid, set sensor mode as requested
+    struct bmp3_settings settings = {0};
+    settings.op_mode = mode;
+    return bmp3_set_op_mode(&settings, &sensor);
+}
+
+int8_t BMP384::enablePressAndTemp(uint8_t pressEnable, uint8_t tempEnable)
+{
+    // Set up default settings
+    struct bmp3_settings settings = {0};
+    settings.press_en = pressEnable;
+    settings.temp_en = tempEnable;
+
+    // Create bit mask for which settings we want to change
+    uint16_t settingsMask = BMP3_SEL_PRESS_EN | BMP3_SEL_TEMP_EN;
+
+    // Set sensor settings
+    return bmp3_set_sensor_settings(settingsMask, &settings, &sensor);
 }
 
 int8_t BMP384::getSensorData(bmp3_data* data)

@@ -35,6 +35,11 @@ class BMP384
         int8_t beginI2C(uint8_t address = BMP384_I2C_ADDRESS_DEFAULT);
         int8_t beginSPI(uint8_t csPin, uint32_t clockFrequency = 100000);
 
+        // Configuration control, the begin functions will set defaults for these
+        int8_t init();
+        int8_t setMode(uint8_t mode);
+        int8_t enablePressAndTemp(uint8_t pressEnable, uint8_t tempEnable);
+
         // Data acquisistion
         int8_t getSensorData(bmp3_data* data);
         int8_t getSensorStatus(bmp3_sens_status* sensorStatus);
