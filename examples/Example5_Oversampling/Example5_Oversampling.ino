@@ -83,8 +83,8 @@ void loop()
     err = pressureSensor.getSensorStatus(&sensorStatus);
     if(err)
     {
-        // Interrupt settings failed, most likely a communication error (code -2)
-        Serial.print("Interrupt settings failed! Error code: ");
+        // Get status failed, most likely a communication error (code -2)
+        Serial.print("Get status failed! Error code: ");
         Serial.println(err);
     }
 
