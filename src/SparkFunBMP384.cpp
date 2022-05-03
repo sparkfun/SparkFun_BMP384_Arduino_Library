@@ -28,7 +28,7 @@ int8_t BMP384::begin()
     return setMode(BMP3_MODE_NORMAL);
 }
 
-int8_t BMP384::beginI2C(uint8_t address)
+int8_t BMP384::beginI2C(uint8_t address, TwoWire& wirePort)
 {
     // Check whether address is valid option
     if(address != BMP3_ADDR_I2C_PRIM && address != BMP3_ADDR_I2C_SEC)
@@ -39,6 +39,7 @@ int8_t BMP384::beginI2C(uint8_t address)
 
     // Address is valid option
     interfaceData.i2cAddress = address;
+    interfaceData.i2cPort = &wirePort;
 
     // Set interface
     sensor.intf = BMP3_I2C_INTF;
@@ -455,20 +456,20 @@ BMP3_INTF_RET_TYPE BMP384::readRegisters(uint8_t regAddress, uint8_t* dataBuffer
     {
         case BMP3_I2C_INTF:
             // Jump to desired register address
-            Wire.beginTransmission(interfaceData->i2cAddress);
-            Wire.write(regAddress);
-            if(Wire.endTransmission())
+            interfaceData->i2cPort->beginTransmission(interfaceData->i2cAddress);
+            interfaceData->i2cPort->write(regAddress);
+            if(interfaceData->i2cPort->endTransmission())
             {
                 return BMP3_E_COMM_FAIL;
             }
 
             // Read bytes from these registers
-            Wire.requestFrom(interfaceData->i2cAddress, numBytes);
+            interfaceData->i2cPort->requestFrom(interfaceData->i2cAddress, numBytes);
 
             // Store all requested bytes
-            for(uint32_t i = 0; i < numBytes && Wire.available(); i++)
+            for(uint32_t i = 0; i < numBytes && interfaceData->i2cPort->available(); i++)
             {
-                dataBuffer[i] = Wire.read();
+                dataBuffer[i] = interfaceData->i2cPort->read();
             }
             break;
 
@@ -508,19 +509,19 @@ BMP3_INTF_RET_TYPE BMP384::writeRegisters(uint8_t regAddress, const uint8_t* dat
     {
         case BMP3_I2C_INTF:
             // Begin transmission
-            Wire.beginTransmission(interfaceData->i2cAddress);
+            interfaceData->i2cPort->beginTransmission(interfaceData->i2cAddress);
 
             // Write the address
-            Wire.write(regAddress);
+            interfaceData->i2cPort->write(regAddress);
             
             // Write all the data
             for(uint32_t i = 0; i < numBytes; i++)
             {
-                Wire.write(dataBuffer[i]);
+                interfaceData->i2cPort->write(dataBuffer[i]);
             }
 
             // End transmission
-            if(Wire.endTransmission())
+            if(interfaceData->i2cPort->endTransmission())
             {
                 return BMP3_E_COMM_FAIL;
             }
