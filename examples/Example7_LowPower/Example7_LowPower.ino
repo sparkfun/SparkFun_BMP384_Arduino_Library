@@ -56,6 +56,8 @@ void loop()
 
     // Transition from sleep mode into forced mode. This will trigger a single
     // measurement, after which the sensor automatically returns to sleep mode
+    // Note - the sensor can only enter forced mode from sleep mode. Transitions
+    // between forced and normal modes are ignored
     err = pressureSensor.setMode(BMP3_MODE_FORCED);
     if(err != BMP3_OK)
     {

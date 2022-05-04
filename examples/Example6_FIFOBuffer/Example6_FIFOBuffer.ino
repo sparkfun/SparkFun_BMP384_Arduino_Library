@@ -70,7 +70,7 @@ void setup()
         .time_en         = BMP3_DISABLE, // Enable sensor time, only 1 frame at end of buffer
         .press_en        = BMP3_ENABLE,  // Enable pressure sensor recording
         .temp_en         = BMP3_ENABLE,  // Enable temperature sensor recording
-        .down_sampling   = 0,            // Set downsampling factor, actually 2^down_sampling
+        .down_sampling   = BMP3_FIFO_NO_SUBSAMPLING, // Set downsampling factor
         .filter_en       = BMP3_DISABLE, // Enable data filtering
         .fwtm_en         = BMP3_ENABLE,  // Trigger interrupt on FIFO watermark
         .ffull_en        = BMP3_DISABLE  // Trigger interrupt on FIFO full
