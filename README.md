@@ -18,7 +18,7 @@ This library implements [Bosch's BMP3 API](https://github.com/BoschSensortec/BMP
 
 ## Documentation
 * **[Installing an Arduino Library Guide](https://learn.sparkfun.com/tutorials/installing-an-arduino-library)** - Basic information on how to install an Arduino library.
-* **[Hardware Repo](https://github.com/sparkfun/Sparkfun_Pressure_Sensor_Breakout_-_BMP384_Qwiic)** - Repository for the BMP384 board.
+* **[Hardware Repo](https://github.com/sparkfun/SparkFun_Qwiic_Pressure_Sensor_BMP384)** - Repository for the BMP384 board.
 * **[Library](https://github.com/sparkfun/SparkFun_BMP384_Arduino_Library)** - This library, providing functions to write applications for the BMP384 with Arduino IDE.
 * **[Hookup Guide](https://learn.sparkfun.com/tutorials/qwiic-pressure-sensor-bmp384-hookup-guide)** - Basic hookup guide for the BMP384.
 * **[LICENSE.md](./LICENSE.md)** - License Information
@@ -28,7 +28,7 @@ This library implements [Bosch's BMP3 API](https://github.com/BoschSensortec/BMP
 
 ## Version History
 
-* [v1.0.0](https://github.com/sparkfun/SparkFun_ADIN1110_Arduino_Library/commits/v1.0.0) - Initial public release.
+* [v1.0.0](https://github.com/sparkfun/SparkFun_BMP384_Arduino_Library/releases/tag/v1.0.0) - Initial public release.
 
 ## License Information
 
