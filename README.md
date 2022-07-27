@@ -1,8 +1,15 @@
 SparkFun BMP384 Arduino Library
 ========================================
-[![SparkFun Pressure Sensor - BMP384 (Qwiic) ](https://cdn.sparkfun.com/assets/parts/1/9/3/3/8/19662-SparkFun_Pressure_Sensor_-_BMP384__Qwiic_-01.jpg)](https://www.sparkfun.com/products/19662)
-
-[*SparkFun Pressure Sensor - BMP384 (Qwiic)*](https://www.sparkfun.com/products/19662)
+<table class="table table-hover table-striped table-bordered">
+  <tr align="center">
+    <td><a href="https://www.sparkfun.com/products/19662"><img src="https://cdn.sparkfun.com/assets/parts/1/9/3/3/8/19662-SparkFun_Pressure_Sensor_-_BMP384__Qwiic_-01.jpg" alt="SparkFun Pressure Sensor - BMP384 (Qwiic)"></a></td>
+    <td><a href="https://www.sparkfun.com/products/19833"><img src="https://cdn.sparkfun.com/assets/learn_tutorials/2/4/2/0/Qwiic_Micro_BMP384-Thumb.jpg" alt="SparkFun Micro Pressure Sensor - BMP384 (Qwiic)"></a></td>
+  </tr>
+  <tr align="center">
+    <td><a href="https://www.sparkfun.com/products/19662"><i>SparkFun Pressure Sensor - BMP384 (Qwiic)</i></a></td>
+    <td><a href="https://www.sparkfun.com/products/19833"><i>SparkFun Micro Pressure Sensor - BMP384 (Qwiic)</i></a></td>
+  </tr>
+</table>
 
 This library provides an easy way to control the BMP384 pressure sensor. It is a very precise sensor, allowing up to 21 bits of precision with oversampling, plus a built-in filter to reduce noise. That's sufficient to measure the difference in pressure of raising/lowering the sensor by just a few inches!
 
