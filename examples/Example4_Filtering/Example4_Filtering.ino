@@ -47,7 +47,7 @@ void setup()
 void loop()
 {
     // Get measurements from the sensor
-    bmp3_data data = {0};
+    bmp3_data data;
     int8_t err = pressureSensor.getSensorData(&data);
 
     // Check whether data was acquired successfully

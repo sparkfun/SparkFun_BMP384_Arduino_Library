@@ -172,7 +172,7 @@ void loop()
         Serial.println("Interrupt occurred!");
 
         // Get the interrupt status to know which condition triggered
-        bmp3_int_status interruptStatus = {0};
+        bmp3_int_status interruptStatus;
         err = pressureSensor.getInterruptStatus(&interruptStatus);
         if(err != BMP3_OK)
         {

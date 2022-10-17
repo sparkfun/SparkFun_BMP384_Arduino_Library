@@ -41,7 +41,8 @@ void setup()
     bmp3_odr_filter_settings osrMultipliers =
     {
         .press_os = BMP3_OVERSAMPLING_32X,
-        .temp_os = BMP3_OVERSAMPLING_2X
+        .temp_os = BMP3_OVERSAMPLING_2X,
+        0,0 // Unused values, included to avoid compiler warnings-as-error
     };
     err = pressureSensor.setOSRMultipliers(osrMultipliers);
     if(err)
@@ -79,7 +80,7 @@ void loop()
     int8_t err = BMP3_OK;
 
     // Get sensor status
-    bmp3_sens_status sensorStatus = {0};
+    bmp3_sens_status sensorStatus;
     err = pressureSensor.getSensorStatus(&sensorStatus);
     if(err)
     {
@@ -92,7 +93,7 @@ void loop()
     if(sensorStatus.drdy_press || sensorStatus.drdy_temp)
     {
         // Measurement is complete, get measurements from the sensor
-        bmp3_data data = {0};
+        bmp3_data data;
         err = pressureSensor.getSensorData(&data);
 
         // Check whether data was acquired successfully

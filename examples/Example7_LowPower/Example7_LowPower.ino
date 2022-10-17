@@ -82,7 +82,7 @@ void loop()
         }
 
         // Get sensor status
-        bmp3_sens_status sensorStatus = {0};
+        bmp3_sens_status sensorStatus;
         err = pressureSensor.getSensorStatus(&sensorStatus);
         if(err != BMP3_OK)
         {
@@ -99,7 +99,7 @@ void loop()
     } while (!dataReady);
     
     // Measurement has finished, let's grab the data
-    bmp3_data data = {0};
+    bmp3_data data;
     err = pressureSensor.getSensorData(&data);
 
     // Check whether data was acquired successfully

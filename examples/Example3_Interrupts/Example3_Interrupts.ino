@@ -85,7 +85,7 @@ void loop()
         int8_t err = BMP3_OK;
 
         // Get the interrupt status to know which condition triggered
-        bmp3_int_status interruptStatus = {0};
+        bmp3_int_status interruptStatus;
         err = pressureSensor.getInterruptStatus(&interruptStatus);
         if(err != BMP3_OK)
         {
@@ -99,7 +99,7 @@ void loop()
         if(interruptStatus.drdy)
         {
             // Get measurements from the sensor
-            bmp3_data data = {0};
+            bmp3_data data;
             int8_t err = pressureSensor.getSensorData(&data);
 
             // Check whether data was acquired successfully
